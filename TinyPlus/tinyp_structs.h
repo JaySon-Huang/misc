@@ -1,5 +1,5 @@
-#ifndef __TINY_CONSTANTS_H__
-#define __TINY_CONSTANTS_H__ 
+#ifndef __TINY_STRUCTS_H__
+#define __TINY_STRUCTS_H__ 
 
 // FILE* 定义
 #include <stdio.h>
@@ -58,6 +58,11 @@ enum Error {
     ERROR_TRAN=0x1000,
     ERROR_STR=0x2000,
 };
+
+enum Action {
+    ACT_EXIT,//退出解析
+    ACT_PUSH_NODE,//把结点接到链表中
+};
 // 保存解析出来的token串的链表结点
 struct token_pair_t{
     enum Kind kind;// token 类型
@@ -71,6 +76,7 @@ struct parse_state_t{
     int lineno;// 行号
     int rowno;// 列号
     char* errdetail;// 出错时保存详细信息
+    int err_type;//错误类型
     enum State cur_state;
 };
 

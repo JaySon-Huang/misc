@@ -65,7 +65,7 @@ destroy_parser(
 
 int _handler_start(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (isspace(ch)) {
         parse_state->cur_state = STA_START;
@@ -108,15 +108,15 @@ int _handler_start(int ch,
 
 int _handler_assign(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER) {
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
-        return ERROR_ASSIGN;
+        parse_state->err_type = ERROR_ASSIGN;
     }else if (ch != '='){
         parse_state->cur_state = STA_ERROR;
-        return ERROR_ASSIGN;
+        parse_state->err_type = ERROR_ASSIGN;
     }else{
         parse_state->cur_state = STA_DONE;
     }
@@ -125,12 +125,12 @@ int _handler_assign(int ch,
 
 int _handler_comment(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF) {
         parse_state->cur_state = STA_ERROR;
         ungetc(ch, parse_state->fp);
-        return ERROR_COMMENT;
+        parse_state->err_type = ERROR_COMMENT;
     }else if (ch == '}') {
         parse_state->cur_state = STA_START;
     }else {
@@ -142,7 +142,7 @@ int _handler_comment(int ch,
 
 int _handler_done(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     switch (ch)
     {
@@ -168,17 +168,17 @@ int _handler_done(int ch,
         return EOF;
     case '}':
         parse_state->cur_state = STA_ERROR;
-        return ERROR_COMMENT;
+        parse_state->err_type = ERROR_COMMENT;
     default:
         parse_state->cur_state = STA_ERROR;
-        return ERROR_ILLGAL_CHAR;
+        parse_state->err_type = ERROR_ILLGAL_CHAR;
     }
     return 0;
 }
 
 int _handler_greater(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch != '=') {
         ungetc(ch, parse_state->fp);
@@ -191,7 +191,7 @@ int _handler_greater(int ch,
 
 int _handler_less(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch != '='){
         ungetc(ch, parse_state->fp);
@@ -204,7 +204,7 @@ int _handler_less(int ch,
 
 int _handler_id(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER) {
         ungetc(ch, parse_state->fp);
@@ -221,7 +221,7 @@ int _handler_id(int ch,
 
 int _handler_number_tmp(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER) {
         ungetc(ch, parse_state->fp);
@@ -231,10 +231,10 @@ int _handler_number_tmp(int ch,
         parse_state->cur_state = STA_OCTNUMBER;
     }else if (isalpha(ch)) {
         parse_state->cur_state = STA_ERROR;
-        return ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        parse_state->err_type = ERROR_NUMBER|ERROR_ILLGAL_CHAR;
     }else if (ch != 'x') {
         parse_state->cur_state = STA_ERROR;
-        return ERROR_NUMBER;
+        parse_state->err_type = ERROR_NUMBER;
     }else {
         parse_state->cur_state = STA_HEXNUMBER_TMP;
     }
@@ -244,17 +244,17 @@ int _handler_number_tmp(int ch,
 
 int _handler_number(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER){
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_DONE;
     }else if (isalpha(ch)){
         parse_state->cur_state = STA_ERROR;
-        return ERROR_NUMBER;
+        parse_state->err_type = ERROR_NUMBER;
     }else if (!isdigit(ch)){
         parse_state->cur_state = STA_ERROR;
-        return ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        parse_state->err_type = ERROR_NUMBER|ERROR_ILLGAL_CHAR;
     }else {
         // TODO: 保存值
     }
@@ -263,12 +263,12 @@ int _handler_number(int ch,
 
 int _handler_string(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == '\n') {
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
-        return ERROR_STR;
+        parse_state->err_type = ERROR_STR;
     }else if (ch == '\''){
         parse_state->cur_state = STA_DONE;
     }else {
@@ -279,12 +279,12 @@ int _handler_string(int ch,
 
 int _handler_tran(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER){
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
-        return ERROR_TRAN;
+        parse_state->err_type = ERROR_TRAN;
     }else {
         switch (ch)
         {
@@ -294,20 +294,20 @@ int _handler_tran(int ch,
             break;
         default:
             parse_state->cur_state = STA_ERROR;
-            return ERROR_TRAN;
+            parse_state->err_type = ERROR_TRAN;
         }
     }
     return 0;
 }
 int _handler_error(int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t** token_pair_head)
+    struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER){
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_DONE;
     }else if (isalnum(ch)) {
-        return ERROR_ILLGAL_CHAR;
+        parse_state->err_type = ERROR_ILLGAL_CHAR;
     }else{
 
     }
@@ -321,6 +321,8 @@ int parse(
 {
     int ch;
     int do_exit = 0;
+    struct token_pair_t* ntp = NULL;
+
     while (1){
         ch = get_next_char(parse_state);
         if (DEBUG)
@@ -329,34 +331,34 @@ int parse(
         switch(parse_state->cur_state)
         {
         case STA_START:
-            _handler_start(ch, parse_state, token_pair_head);
+            _handler_start(ch, parse_state, ntp);
             break;
         case STA_ASSIGN:
-            _handler_assign(ch, parse_state, token_pair_head);
+            _handler_assign(ch, parse_state, ntp);
             break;
         case STA_COMMENT:
-            _handler_comment(ch, parse_state, token_pair_head);
+            _handler_comment(ch, parse_state, ntp);
             break;
         case STA_DONE:
-            do_exit = _handler_done(ch, parse_state, token_pair_head);
+            do_exit = _handler_done(ch, parse_state, ntp);
             break;
         case STA_GREATER:
-            _handler_greater(ch, parse_state, token_pair_head);
+            _handler_greater(ch, parse_state, ntp);
             break;
         case STA_LESS:
-            _handler_less(ch, parse_state, token_pair_head);
+            _handler_less(ch, parse_state, ntp);
             break;
         case STA_ID:
-            _handler_id(ch, parse_state, token_pair_head);
+            _handler_id(ch, parse_state, ntp);
             break;
         case STA_NUMBER:
-            _handler_number(ch, parse_state, token_pair_head);
+            _handler_number(ch, parse_state, ntp);
             break;
         case STA_STRING:
-            _handler_string(ch, parse_state, token_pair_head);
+            _handler_string(ch, parse_state, ntp);
             break;
         case STA_ERROR:
-            _handler_error(ch, parse_state, token_pair_head);
+            _handler_error(ch, parse_state, ntp);
             break;
 
         default:
