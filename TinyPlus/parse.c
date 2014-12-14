@@ -309,7 +309,7 @@ int _handler_error(int ch,
     }else if (isalnum(ch)) {
         return ERROR_ILLGAL_CHAR;
     }else{
-        
+
     }
 
     return 0;
@@ -320,6 +320,7 @@ int parse(
     struct token_pair_t** token_pair_head)
 {
     int ch;
+    int do_exit = 0;
     while (1){
         ch = get_next_char(parse_state);
         if (DEBUG)
@@ -337,7 +338,7 @@ int parse(
             _handler_comment(ch, parse_state, token_pair_head);
             break;
         case STA_DONE:
-            _handler_done(ch, parse_state, token_pair_head);
+            do_exit = _handler_done(ch, parse_state, token_pair_head);
             break;
         case STA_GREATER:
             _handler_greater(ch, parse_state, token_pair_head);
@@ -363,7 +364,9 @@ int parse(
             break;
         }
         
-        
+        if (do_exit == EOF){
+            break;
+        }
     }
     return 0;
 }
@@ -377,15 +380,10 @@ int get_next_char(
     if ( feof(parse_state->fp) ) {
         return EOF;
     }
-
-    while (1) {
-        ch = fgetc(parse_state->fp);
-        parse_state->rowno += 1;
-
-        if (ch == '\n') {
-            parse_state->lineno += 1;
-        }else {
-            return ch;
-        }
+    ch = fgetc(parse_state->fp);
+    parse_state->rowno += 1;
+    if (ch == '\n') {
+        parse_state->lineno += 1;
     }
+    return ch;
 }

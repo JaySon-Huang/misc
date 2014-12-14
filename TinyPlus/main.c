@@ -12,7 +12,7 @@ int main(int argc, char const *argv[])
     struct token_pair_t* token_pair_head;
     init_parser("example.tinyp", &parse_state, &token_pair_head);
 
-
+    parse(&parse_state, &token_pair_head);
 
     destroy_parser(&parse_state, &token_pair_head);
     return 0;
