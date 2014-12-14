@@ -67,12 +67,18 @@ int _handler_start(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
-    if (isalpha(ch)){
+    if (isspace(ch)) {
+        parse_state->cur_state = STA_START;
+    }else if (isalpha(ch)) {
         // 字母
         parse_state->cur_state = STA_ID;
     }else if (isnumber(ch)){
         // 数字
-        parse_state->cur_state = STA_NUMBER;
+        if (ch == '0'){
+            parse_state->cur_state = STA_NUMBER_TMP;
+        }else{
+            parse_state->cur_state = STA_NUMBER;
+        }
     }
     else{
         switch (ch)
@@ -104,6 +110,16 @@ int _handler_assign(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch == EOF || ch == DELIMITER) {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_ASSIGN;
+    }else if (ch != '='){
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_ASSIGN;
+    }else{
+        parse_state->cur_state = STA_DONE;
+    }
     return 0;
 }
 
@@ -111,6 +127,16 @@ int _handler_comment(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch == EOF) {
+        parse_state->cur_state = STA_ERROR;
+        ungetc(ch, parse_state->fp);
+        return ERROR_COMMENT;
+    }else if (ch == '}') {
+        parse_state->cur_state = STA_START;
+    }else {
+        // 注释的内容
+        // FIXME: 如何处理?需要记录吗?
+    }
     return 0;
 }
 
@@ -118,6 +144,35 @@ int _handler_done(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    switch (ch)
+    {
+    case ',':
+        break;
+    case '+':
+        break;
+    case '-':
+        break;
+    case '*':
+        break;
+    case '/':
+        break;
+    case '(':
+        break;
+    case ')':
+        break;
+    case '=':
+        break;
+    case ';':
+        break;
+    case EOF:
+        return EOF;
+    case '}':
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_COMMENT;
+    default:
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_ILLGAL_CHAR;
+    }
     return 0;
 }
 
@@ -125,6 +180,12 @@ int _handler_greater(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch != '=') {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else {
+        parse_state->cur_state = STA_GEQ;
+    }
     return 0;
 }
 
@@ -132,6 +193,12 @@ int _handler_less(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch != '='){
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else {
+        parse_state->cur_state = STA_LEQ;
+    }
     return 0;
 }
 
@@ -139,6 +206,39 @@ int _handler_id(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch == EOF || ch == DELIMITER) {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else if (isalnum(ch)){
+        // TODO: 保存值
+
+    }else {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }
+    return 0;
+}
+
+int _handler_number_tmp(int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t** token_pair_head)
+{
+    if (ch == EOF || ch == DELIMITER) {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else if (isnumber(ch)) {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_OCTNUMBER;
+    }else if (isalpha(ch)) {
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+    }else if (ch != 'x') {
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_NUMBER;
+    }else {
+        parse_state->cur_state = STA_HEXNUMBER_TMP;
+    }
+
     return 0;
 }
 
@@ -146,6 +246,18 @@ int _handler_number(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch == EOF || ch == DELIMITER){
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else if (isalpha(ch)){
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_NUMBER;
+    }else if (!isdigit(ch)){
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+    }else {
+        // TODO: 保存值
+    }
     return 0;
 }
 
@@ -153,6 +265,53 @@ int _handler_string(int ch,
     struct parse_state_t* parse_state,
     struct token_pair_t** token_pair_head)
 {
+    if (ch == EOF || ch == '\n') {
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_STR;
+    }else if (ch == '\''){
+        parse_state->cur_state = STA_DONE;
+    }else {
+        // TODO: 保存值
+    }
+    return 0;
+}
+
+int _handler_tran(int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t** token_pair_head)
+{
+    if (ch == EOF || ch == DELIMITER){
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_ERROR;
+        return ERROR_TRAN;
+    }else {
+        switch (ch)
+        {
+        case 'a':case 'b':case 'f':case 'n':case 'r':
+        case 't':case 'v':case '\\':case '\'':case '0':
+            parse_state->cur_state = STA_DONE;
+            break;
+        default:
+            parse_state->cur_state = STA_ERROR;
+            return ERROR_TRAN;
+        }
+    }
+    return 0;
+}
+int _handler_error(int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t** token_pair_head)
+{
+    if (ch == EOF || ch == DELIMITER){
+        ungetc(ch, parse_state->fp);
+        parse_state->cur_state = STA_DONE;
+    }else if (isalnum(ch)) {
+        return ERROR_ILLGAL_CHAR;
+    }else{
+        
+    }
+
     return 0;
 }
 
@@ -169,23 +328,38 @@ int parse(
         switch(parse_state->cur_state)
         {
         case STA_START:
-
+            _handler_start(ch, parse_state, token_pair_head);
             break;
         case STA_ASSIGN:
+            _handler_assign(ch, parse_state, token_pair_head);
             break;
         case STA_COMMENT:
+            _handler_comment(ch, parse_state, token_pair_head);
             break;
         case STA_DONE:
+            _handler_done(ch, parse_state, token_pair_head);
             break;
         case STA_GREATER:
+            _handler_greater(ch, parse_state, token_pair_head);
             break;
         case STA_LESS:
+            _handler_less(ch, parse_state, token_pair_head);
             break;
         case STA_ID:
+            _handler_id(ch, parse_state, token_pair_head);
             break;
         case STA_NUMBER:
+            _handler_number(ch, parse_state, token_pair_head);
             break;
         case STA_STRING:
+            _handler_string(ch, parse_state, token_pair_head);
+            break;
+        case STA_ERROR:
+            _handler_error(ch, parse_state, token_pair_head);
+            break;
+
+        default:
+            fprintf(stderr, "State:%d had not been handled!\n", parse_state->cur_state);
             break;
         }
         
@@ -210,8 +384,6 @@ int get_next_char(
 
         if (ch == '\n') {
             parse_state->lineno += 1;
-        }else if (isspace(ch)) {
-            continue;
         }else {
             return ch;
         }

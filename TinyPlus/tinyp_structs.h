@@ -28,17 +28,35 @@ enum Kind {
     TK_RP, // )
     TK_LSS, // <
     TK_EQU, // =
+
+    TK_ENDFILE, // 文件尾
 };
 enum State {
     STA_START, // 空白状态
     STA_COMMENT, // 解析注释
+    STA_NUMBER_TMP, //
     STA_NUMBER, // 解析数字
+    STA_OCTNUMBER, // 解析8进制数字
+    STA_HEXNUMBER_TMP, //
+    STA_HEXNUMBER, // 解析16进制数字
     STA_ID, // 解析标识符
     STA_ASSIGN, // 解析赋值
     STA_LESS, // 
+    STA_LEQ, //
     STA_GREATER, //
+    STA_GEQ, //
     STA_STRING, // 解析字符串
+    STA_TRAN, // 转义字符
     STA_DONE, // 
+    STA_ERROR, // 错误
+};
+enum Error {
+    ERROR_COMMENT=0x100,
+    ERROR_NUMBER=0x200,
+    ERROR_ILLGAL_CHAR=0x400,
+    ERROR_ASSIGN=0x800,
+    ERROR_TRAN=0x1000,
+    ERROR_STR=0x2000,
 };
 // 保存解析出来的token串的链表结点
 struct token_pair_t{
@@ -55,5 +73,7 @@ struct parse_state_t{
     char* errdetail;// 出错时保存详细信息
     enum State cur_state;
 };
+
+#define DELIMITER ';'
 
 #endif
