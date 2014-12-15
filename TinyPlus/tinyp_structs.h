@@ -13,7 +13,7 @@ enum Kind {
     TK_ELSE, TK_END, TK_REPEAT,
     TK_UNTIL, TK_READ, TK_WRITE,
     // 操作符
-    TK_GTR, // >
+    TK_GREATER, // >
     TK_LEQ, // <=
     TK_GEQ, // >=
     TK_COMMA, // ,
@@ -26,10 +26,15 @@ enum Kind {
     TK_DIV, // /
     TK_LP, // (
     TK_RP, // )
-    TK_LSS, // <
+    TK_LESS, // <
     TK_EQU, // =
 
+    TK_COMMENT, //注释
     TK_ENDFILE, // 文件尾
+    TK_ID, // 标识符
+    TK_NUM, // 十进制数
+    TK_NUMOCT, // 八进制数
+    TK_HEXNUM, // 十六进制数
 };
 enum State {
     STA_START, // 空白状态
@@ -60,13 +65,16 @@ enum Error {
 };
 
 enum Action {
-    ACT_EXIT,//退出解析
-    ACT_PUSH_NODE,//把结点接到链表中
+    ACT_IDLE, // 空
+    ACT_EXIT, // 退出解析
+    ACT_PUSH_NODE,// 把结点接到链表中
+    ACT_REPORT_ERROR, // 报告错误
 };
 // 保存解析出来的token串的链表结点
 struct token_pair_t{
     enum Kind kind;// token 类型
-    char *value;// token 值
+    char value[1023];// token 值
+    unsigned int value_len;
     struct token_pair_t* next;// 下一个结点
 };
 
@@ -81,5 +89,6 @@ struct parse_state_t{
 };
 
 #define DELIMITER ';'
+#define DEBUG 0
 
 #endif
