@@ -136,13 +136,16 @@ int parse(
         case ACT_PUSH_NODE:
             printf("(%d,%s)\n", ntp->kind, ntp->value);
             push_node(token_pair_head, ntp);
+            
             ntp = new_node();
             break;
         case ACT_REPORT_ERROR:
             free(ntp);
             break;
         case ACT_EXIT:
-            free(ntp);
+            ntp->kind = TK_ENDFILE;
+            push_node(token_pair_head, ntp);
+            printf("(%d,%s)\n", ntp->kind, ntp->value);
             return 0;
         }
     }

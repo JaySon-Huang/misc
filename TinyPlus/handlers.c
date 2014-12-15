@@ -65,8 +65,8 @@ int _handler_start(
         default:
             if (DEBUG)
                 printf("End Start -> Done\n");
+            ungetc(ch, parse_state->fp);
             parse_state->cur_state = STA_DONE;
-            return ACT_PUSH_NODE;
             break;
         }
     }
@@ -79,13 +79,19 @@ int _handler_assign(
     struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER) {
+        if (DEBUG)
+            printf("End Assign -> Error\n");
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
         parse_state->err_type = ERROR_ASSIGN;
     }else if (ch != '=') {
+        if (DEBUG)
+            printf("End Assign -> Error\n");
         parse_state->cur_state = STA_ERROR;
         parse_state->err_type = ERROR_ASSIGN;
     }else{
+        if (DEBUG)
+            printf("End Assign -> Done\n");
         ntp->value[ntp->value_len++] = ch;
         parse_state->cur_state = STA_DONE;
         return ACT_PUSH_NODE;
@@ -99,6 +105,8 @@ int _handler_comment(
     struct token_pair_t* ntp)
 {
     if (ch == EOF) {
+        if (DEBUG)
+            printf("End Comment -> Error\n");
         parse_state->cur_state = STA_ERROR;
         ungetc(ch, parse_state->fp);
         parse_state->err_type = ERROR_COMMENT;
@@ -207,7 +215,7 @@ int _handler_done(
             printf("End Done -> Start\n");
             break;
         case ACT_EXIT:
-            printf("Get EOF Exit.\n");
+            printf("Get EOF. Exit.\n");
             break;
         }
     }
@@ -292,6 +300,8 @@ int _handler_greater(
         ntp->kind = TK_GREATER;
         return ACT_PUSH_NODE;
     }else {
+        if (DEBUG)
+            printf("Greater -> Greater or Euqal\n");
         ntp->value[ntp->value_len++] = ch;
         parse_state->cur_state = STA_GEQ;
         return ACT_IDLE;
@@ -312,6 +322,8 @@ int _handler_less(
         ntp->kind = TK_LESS;
         return ACT_PUSH_NODE;
     }else {
+        if (DEBUG)
+            printf("Less -> Less or Euqal\n");
         ntp->value[ntp->value_len++] = ch;
         parse_state->cur_state = STA_LEQ;
     }
@@ -384,7 +396,7 @@ int _handler_id(
         _key_or_id(ntp);
         return ACT_PUSH_NODE;
     }else if (isalnum(ch)) {
-        // TODO: 保存值
+        // 保存值
         ntp->value[ntp->value_len++] = ch;
     }else {
         if (DEBUG)
@@ -403,14 +415,19 @@ int _handler_string(
     struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == '\n') {
+        if (DEBUG)
+            printf("String -> Error\n");
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
         parse_state->err_type = ERROR_STR;
     }else if (ch == '\'') {
+        if (DEBUG)
+            printf("End String -> Done\n");
         parse_state->cur_state = STA_DONE;
+        ntp->kind = TK_STRING;
         return ACT_PUSH_NODE;
     }else {
-        // TODO: 保存值
+        // 保存值
         ntp->value[ntp->value_len++] = ch;
     }
     return ACT_IDLE;
@@ -422,6 +439,8 @@ int _handler_tran(
     struct token_pair_t* ntp)
 {
     if (ch == EOF || ch == DELIMITER) {
+        if (DEBUG)
+            printf("Trans -> Error\n");
         ungetc(ch, parse_state->fp);
         parse_state->cur_state = STA_ERROR;
         parse_state->err_type = ERROR_TRAN;
@@ -430,11 +449,15 @@ int _handler_tran(
         {
         case 'a':case 'b':case 'f':case 'n':case 'r':
         case 't':case 'v':case '\\':case '\'':case '0':
+            if (DEBUG)
+                printf("End Trans\n");
             ntp->value[ntp->value_len++] = ch;
             parse_state->cur_state = STA_DONE;
-            return ACT_PUSH_NODE;
             break;
+        
         default:
+            if (DEBUG)
+                printf("Trans -> Error\n");
             parse_state->cur_state = STA_ERROR;
             parse_state->err_type = ERROR_TRAN;
             break;
