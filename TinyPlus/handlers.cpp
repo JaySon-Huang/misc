@@ -5,12 +5,13 @@
 #include <ctype.h>
 
 #include "tinyp_structs.h"
+#include "parse.h"
 #include "handlers.h"
 
 int _handler_start(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (isspace(ch) || ch == '\n' || ch == '\r') {
         parse_state->cur_state = STA_START;
@@ -18,13 +19,13 @@ int _handler_start(
         // 字母
         if (DEBUG)
             printf("End Start -> ID\n");
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
         parse_state->cur_state = STA_ID;
     }else if (isnumber(ch)) {
         // 数字
         if (DEBUG)
             printf("End Start -> Num (Num tmp for 0)\n");
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
         if (ch == '0') {
             parse_state->cur_state = STA_NUMBER_TMP;
         }else{
@@ -46,26 +47,26 @@ int _handler_start(
         case ':'://赋值
             if (DEBUG)
                 printf("End Start -> Assign\n");
-            ntp->value[ntp->value_len++] = ch;
+            ptoken_pair->value += ch;
             parse_state->cur_state = STA_ASSIGN;
             break;
         case '>':
             if (DEBUG)
                 printf("End Start -> Greater\n");
-            ntp->value[ntp->value_len++] = ch;
+            ptoken_pair->value += ch;
             parse_state->cur_state = STA_GREATER;
             break;
         case '<':
             if (DEBUG)
                 printf("End Start -> Less\n");
-            ntp->value[ntp->value_len++] = ch;
+            ptoken_pair->value += ch;
             parse_state->cur_state = STA_LESS;
             break;
 
         default:
             if (DEBUG)
                 printf("End Start -> Done\n");
-            ungetc(ch, parse_state->fp);
+            unget_one_char(ch, parse_state);
             parse_state->cur_state = STA_DONE;
             break;
         }
@@ -76,23 +77,26 @@ int _handler_start(
 int _handler_assign(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
             printf("End Assign -> Error\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_ASSIGN;
+        parse_state->err_type |= ERROR_ASSIGN;
+        return ACT_REPORT_ERROR;
     }else if (ch != '=') {
         if (DEBUG)
             printf("End Assign -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_ASSIGN;
+        parse_state->err_type |= ERROR_ASSIGN;
+        return ACT_REPORT_ERROR;
     }else{
         if (DEBUG)
             printf("End Assign -> Done\n");
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_ASSIGN;
         parse_state->cur_state = STA_DONE;
         return ACT_PUSH_NODE;
     }
@@ -102,24 +106,24 @@ int _handler_assign(
 int _handler_comment(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF) {
         if (DEBUG)
             printf("End Comment -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        ungetc(ch, parse_state->fp);
-        parse_state->err_type = ERROR_COMMENT;
+        unget_one_char(ch, parse_state);
+        parse_state->err_type |= ERROR_COMMENT_UNEXPECTED_EOF;
+        return ACT_REPORT_ERROR;
     }else if (ch == '}') {
         if (DEBUG)
             printf("End Comment -> Start\n");
-        ntp->kind = TK_COMMENT;
+        ptoken_pair->kind = TK_COMMENT;
         parse_state->cur_state = STA_START;
         return ACT_PUSH_NODE;
     }else {
         // 注释的内容
-        // FIXME: 如何处理?需要记录吗?
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
     }
     return ACT_IDLE;
 }
@@ -127,7 +131,7 @@ int _handler_comment(
 int _handler_done(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     int action = ACT_IDLE;
     parse_state->cur_state = STA_START;
@@ -139,54 +143,54 @@ int _handler_done(
     }else if (isalnum(ch) || ch == '>' || ch == '<' || ch == ':'){
         if (DEBUG)
             printf("End Done -> Start\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         return ACT_IDLE;
     }
     switch (ch)
     {
     case ',':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_COMMA;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_COMMA;
         action = ACT_PUSH_NODE;
         break;
     case '+':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_ADD;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_ADD;
         action = ACT_PUSH_NODE;
         break;
     case '-':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_SUB;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_SUB;
         action = ACT_PUSH_NODE;
         break;
     case '*':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_MUL;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_MUL;
         action = ACT_PUSH_NODE;
         break;
     case '/':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_DIV;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_DIV;
         action = ACT_PUSH_NODE;
         break;
     case '(':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_LP;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_LP;
         action = ACT_PUSH_NODE;
         break;
     case ')':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_RP;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_RP;
         action = ACT_PUSH_NODE;
         break;
     case '=':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_EQU;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_EQU;
         action = ACT_PUSH_NODE;
         break;
     case ';':
-        ntp->value[ntp->value_len++] = ch;
-        ntp->kind = TK_SEMICOLON;
+        ptoken_pair->value += ch;
+        ptoken_pair->kind = TK_SEMICOLON;
         action = ACT_PUSH_NODE;
         break;
 
@@ -198,14 +202,14 @@ int _handler_done(
         if (DEBUG)
             printf("End Done -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_COMMENT;
-        action = ACT_IDLE;
+        parse_state->err_type |= ERROR_COMMENT_UNEXPECTED_BRACKET;
+        action = ACT_REPORT_ERROR;
     default:
         if (DEBUG)
             printf("End Done -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_ILLGAL_CHAR;
-        action = ACT_IDLE;
+        parse_state->err_type |= ERROR_ILLGAL_CHAR;
+        action = ACT_REPORT_ERROR;
     }
     if (DEBUG){
         switch (action)
@@ -225,30 +229,32 @@ int _handler_done(
 int _handler_number_tmp(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch)) {
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
         if (DEBUG)
             printf("End Num tmp -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        ntp->kind = TK_NUM;
+        ptoken_pair->kind = TK_NUM;
         return ACT_PUSH_NODE;
     }else if (isnumber(ch)) {
         if (DEBUG)
             printf("End Num tmp -> Num Oct\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_OCTNUMBER;
     }else if (!isalpha(ch)) {
         if (DEBUG)
             printf("End Num tmp -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        parse_state->err_type |= ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        return ACT_REPORT_ERROR;
     }else if (ch != 'x') {
         if (DEBUG)
             printf("End Num tmp -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_NUMBER;
+        parse_state->err_type |= ERROR_NUMBER;
+        return ACT_REPORT_ERROR;
     }else {
         if (DEBUG)
             printf("End Num tmp -> Num Hex\n");
@@ -261,28 +267,30 @@ int _handler_number_tmp(
 int _handler_number(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch)) {
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
         if (DEBUG)
             printf("End Num -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        ntp->kind = TK_NUM;
+        ptoken_pair->kind = TK_NUM;
         return ACT_PUSH_NODE;
     }else if (isalpha(ch)) {
         if (DEBUG)
             printf("End Num -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_NUMBER;
+        parse_state->err_type |= ERROR_NUMBER;
+        return ACT_REPORT_ERROR;
     }else if (!isdigit(ch)) {
         if (DEBUG)
             printf("End Num -> Error\n");
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        parse_state->err_type |= ERROR_NUMBER|ERROR_ILLGAL_CHAR;
+        return ACT_REPORT_ERROR;
     }else {
         // TODO: 保存值
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
     }
     return ACT_IDLE;
 }
@@ -290,21 +298,22 @@ int _handler_number(
 int _handler_greater(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch != '=') {
         if (DEBUG)
             printf("End Greater -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        ntp->kind = TK_GREATER;
+        ptoken_pair->kind = TK_GREATER;
         return ACT_PUSH_NODE;
     }else {
         if (DEBUG)
             printf("Greater -> Greater or Euqal\n");
-        ntp->value[ntp->value_len++] = ch;
-        parse_state->cur_state = STA_GEQ;
-        return ACT_IDLE;
+        ptoken_pair->value += ch;
+        parse_state->cur_state = STA_DONE;
+        ptoken_pair->kind = TK_GEQ;
+        return ACT_PUSH_NODE;
     }
     return ACT_IDLE;
 }
@@ -312,98 +321,47 @@ int _handler_greater(
 int _handler_less(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch != '=') {
         if (DEBUG)
             printf("End Less -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        ntp->kind = TK_LESS;
+        ptoken_pair->kind = TK_LESS;
         return ACT_PUSH_NODE;
     }else {
         if (DEBUG)
             printf("Less -> Less or Euqal\n");
-        ntp->value[ntp->value_len++] = ch;
-        parse_state->cur_state = STA_LEQ;
+        ptoken_pair->value += ch;
+        parse_state->cur_state = STA_DONE;
+        ptoken_pair->kind = TK_LEQ;
+        return ACT_PUSH_NODE;
     }
     return ACT_IDLE;
-}
-
-/**
- *   关键字:
- *   TK_TRUE, TK_FALSE, TK_OR,
- *   TK_AND, TK_NOT, TK_INT,
- *   TK_BOOL, TK_STRING, TK_WHILE,
- *   TK_DO, TK_IF, TK_THEN,
- *   TK_ELSE, TK_END, TK_REPEAT,
- *   TK_UNTIL, TK_READ, TK_WRITE,
- */
-void _key_or_id(struct token_pair_t* ntp)
-{
-    if (0 == strcmp(ntp->value, "true")){
-        ntp->kind = TK_TRUE;
-    }else if (0 == strcmp(ntp->value, "false")){
-        ntp->kind = TK_FALSE;
-    }else if (0 == strcmp(ntp->value, "or")){
-        ntp->kind = TK_OR;
-    }else if (0 == strcmp(ntp->value, "and")){
-        ntp->kind = TK_AND;
-    }else if (0 == strcmp(ntp->value, "not")){
-        ntp->kind = TK_NOT;
-    }else if (0 == strcmp(ntp->value, "int")){
-        ntp->kind = TK_INT;
-    }else if (0 == strcmp(ntp->value, "bool")){
-        ntp->kind = TK_BOOL;
-    }else if (0 == strcmp(ntp->value, "string")){
-        ntp->kind = TK_STRING;
-    }else if (0 == strcmp(ntp->value, "while")){
-        ntp->kind = TK_WHILE;
-    }else if (0 == strcmp(ntp->value, "do")){
-        ntp->kind = TK_DO;
-    }else if (0 == strcmp(ntp->value, "if")){
-        ntp->kind = TK_IF;
-    }else if (0 == strcmp(ntp->value, "then")){
-        ntp->kind = TK_THEN;
-    }else if (0 == strcmp(ntp->value, "else")){
-        ntp->kind = TK_ELSE;
-    }else if (0 == strcmp(ntp->value, "end")){
-        ntp->kind = TK_END;
-    }else if (0 == strcmp(ntp->value, "repeat")){
-        ntp->kind = TK_REPEAT;
-    }else if (0 == strcmp(ntp->value, "until")){
-        ntp->kind = TK_UNTIL;
-    }else if (0 == strcmp(ntp->value, "read")){
-        ntp->kind = TK_READ;
-    }else if (0 == strcmp(ntp->value, "write")){
-        ntp->kind = TK_WRITE;
-    }else {
-        ntp->kind = TK_ID;
-    }
-    
 }
 
 int _handler_id(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
             printf("End ID -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        _key_or_id(ntp);
+        token_pair_kind_key(ptoken_pair);
         return ACT_PUSH_NODE;
     }else if (isalnum(ch)) {
         // 保存值
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
     }else {
         if (DEBUG)
             printf("End ID -> Done\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
-        _key_or_id(ntp);
+        token_pair_kind_key(ptoken_pair);
         return ACT_PUSH_NODE;
     }
     return ACT_IDLE;
@@ -412,23 +370,24 @@ int _handler_id(
 int _handler_string(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == '\n') {
         if (DEBUG)
             printf("String -> Error\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_STR;
+        parse_state->err_type |= ERROR_STR;
+        return ACT_REPORT_ERROR;
     }else if (ch == '\'') {
         if (DEBUG)
             printf("End String -> Done\n");
         parse_state->cur_state = STA_DONE;
-        ntp->kind = TK_STRING;
+        ptoken_pair->kind = TK_STRING;
         return ACT_PUSH_NODE;
     }else {
         // 保存值
-        ntp->value[ntp->value_len++] = ch;
+        ptoken_pair->value += ch;
     }
     return ACT_IDLE;
 }
@@ -436,14 +395,15 @@ int _handler_string(
 int _handler_tran(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
             printf("Trans -> Error\n");
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_ERROR;
-        parse_state->err_type = ERROR_TRAN;
+        parse_state->err_type |= ERROR_TRAN;
+        return ACT_REPORT_ERROR;
     }else {
         switch (ch)
         {
@@ -451,7 +411,7 @@ int _handler_tran(
         case 't':case 'v':case '\\':case '\'':case '0':
             if (DEBUG)
                 printf("End Trans\n");
-            ntp->value[ntp->value_len++] = ch;
+            ptoken_pair->value += ch;
             parse_state->cur_state = STA_DONE;
             break;
         
@@ -459,8 +419,8 @@ int _handler_tran(
             if (DEBUG)
                 printf("Trans -> Error\n");
             parse_state->cur_state = STA_ERROR;
-            parse_state->err_type = ERROR_TRAN;
-            break;
+            parse_state->err_type |= ERROR_TRAN;
+            return ACT_REPORT_ERROR;
         }
     }
     return ACT_IDLE;
@@ -468,14 +428,14 @@ int _handler_tran(
 int _handler_error(
     int ch, 
     struct parse_state_t* parse_state,
-    struct token_pair_t* ntp)
+    struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
-        ungetc(ch, parse_state->fp);
+        unget_one_char(ch, parse_state);
         parse_state->cur_state = STA_DONE;
         return ACT_PUSH_NODE;
     }else if (isalnum(ch)) {
-        parse_state->err_type = ERROR_ILLGAL_CHAR;
+        parse_state->err_type |= ERROR_ILLGAL_CHAR;
     }else{
 
     }

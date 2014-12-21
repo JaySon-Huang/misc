@@ -4,11 +4,14 @@
 // FILE* 定义
 #include <stdio.h>
 
+#include <string>
+using std::string;
+
 enum Kind {
     // 关键字
     TK_TRUE, TK_FALSE, TK_OR,
     TK_AND, TK_NOT, TK_INT,
-    TK_BOOL, TK_STRING, TK_WHILE,
+    TK_BOOL, TK_STR, TK_WHILE,
     TK_DO, TK_IF, TK_THEN,
     TK_ELSE, TK_END, TK_REPEAT,
     TK_UNTIL, TK_READ, TK_WRITE,
@@ -31,9 +34,10 @@ enum Kind {
 
     TK_COMMENT, //注释
     TK_ENDFILE, // 文件尾
+    TK_STRING, // 字符串
     TK_ID, // 标识符
     TK_NUM, // 十进制数
-    TK_NUMOCT, // 八进制数
+    TK_OCTNUM, // 八进制数
     TK_HEXNUM, // 十六进制数
 };
 enum State {
@@ -47,21 +51,20 @@ enum State {
     STA_ID, // 解析标识符
     STA_ASSIGN, // 解析赋值
     STA_LESS, // 
-    STA_LEQ, //
     STA_GREATER, //
-    STA_GEQ, //
     STA_STRING, // 解析字符串
     STA_TRAN, // 转义字符
     STA_DONE, // 
     STA_ERROR, // 错误
 };
 enum Error {
-    ERROR_COMMENT=0x100,
-    ERROR_NUMBER=0x200,
-    ERROR_ILLGAL_CHAR=0x400,
-    ERROR_ASSIGN=0x800,
-    ERROR_TRAN=0x1000,
-    ERROR_STR=0x2000,
+    ERROR_COMMENT_UNEXPECTED_EOF=0x100,
+    ERROR_COMMENT_UNEXPECTED_BRACKET=0x200,
+    ERROR_NUMBER=0x400,
+    ERROR_ILLGAL_CHAR=0x800,
+    ERROR_ASSIGN=0x1000,
+    ERROR_TRAN=0x2000,
+    ERROR_STR=0x4000,
 };
 
 enum Action {
@@ -73,10 +76,13 @@ enum Action {
 // 保存解析出来的token串的链表结点
 struct token_pair_t{
     enum Kind kind;// token 类型
-    char value[1023];// token 值
-    unsigned int value_len;
-    struct token_pair_t* next;// 下一个结点
+    string value;// token 值
 };
+
+void 
+token_pair_print(struct token_pair_t* ptoken_pair);
+void 
+token_pair_kind_key(struct token_pair_t* ptoken_pair);
 
 // 保存当前解析状态,出错原因
 struct parse_state_t{
@@ -90,5 +96,7 @@ struct parse_state_t{
 
 #define DELIMITER ';'
 #define DEBUG 0
+#define IGNORE_ERROR 1
+#define DETAIL 0
 
 #endif
