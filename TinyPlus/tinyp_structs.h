@@ -96,6 +96,57 @@ struct parse_state_t{
     enum State cur_state;
 };
 
+enum ObjectType {
+    OT_FUN,   // 函数
+    OT_VAR,   // 变量
+    OT_CONST, // 常量
+};
+
+enum ValueType {
+    VT_INT,    // 整形
+    VT_BOOL,   // 布尔类型
+    VT_STRING, // 字符串类型
+};
+
+enum NodeType {
+    PROGRAM,       // 程序（开始符号）节点
+    STMT_SEQUENCE, // 语句列表节点
+    IF_STMT,       // 条件语句节点
+    REPEAT_STMT,   // repeat语句节点
+    ASSIGN_STMT,   // 赋值语句节点
+    READ_STMT,     // read语句节点
+    WRITE_STMT,    // write语句节点
+    WHILE_STMT,    // while语句节点
+    GTR_EXP,       // 大于表达式节点
+    GEQ_EXP,       // 大于等于表达式节点
+    LSS_EXP,       // 小于表达式节点
+    LEQ_EXP,       // 小于等于表达式节点
+    LOG_OR_EXP,    // 逻辑或表达式节点
+    LOG_AND_EXP,   // 逻辑与表达式节点
+    LOG_NOT_EXP,   // 逻辑非表达式节点
+    ADD_EXP,       // 加法表达式节点
+    SUB_EXP,       // 减法表达式节点
+    MUL_EXP,       // 乘法表达式节点
+    DIV_EXP,       // 除法表达式节点
+    FACTOR,        // 原子节点
+};
+
+struct symbol_t {
+    struct token_pair_t token; // token
+    enum ObjectType obj_type; // 符号对象类型
+    enum ValueType val_type; //值类型
+    // int addr;  // 地址
+    // int size;  // 字节数
+    // int level; // 层次
+};
+
+struct tree_node_t {
+    enum NodeType node_type;// 节点类型
+    enum ValueType val_type;// 节点值类型
+    struct tree_node_t* child[3];// 子节点
+    struct token_pair_t* token; // 当节点为FACTOR类型时该成员才有效
+};
+
 #define DELIMITER ';'
 #define DEBUG 0
 #define IGNORE_ERROR 1
