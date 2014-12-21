@@ -87,7 +87,7 @@ void
 token_pair_kind_key(struct token_pair_t* ptoken_pair);
 
 // 保存当前解析状态,出错原因
-struct parse_state_t{
+struct lex_state_t{
     FILE* fp;
     int lineno;// 行号
     int rowno;// 列号
