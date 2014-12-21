@@ -1,5 +1,5 @@
-#ifndef __TINY_PARSE_H__
-#define __TINY_PARSE_H__ 
+#ifndef __TINYP_LEXER_H__
+#define __TINYP_LEXER_H__ 
 
 
 #include <stdlib.h>

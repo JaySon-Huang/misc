@@ -1,5 +1,5 @@
-#ifndef __TINY_HANDLER_H_
-#define __TINY_HANDLER_H_ 
+#ifndef __TINYP_LEXICAL_HANDLER_H_
+#define __TINYP_LEXICAL_HANDLER_H_ 
 
 #include "tinyp_structs.h"
 
