@@ -2,4 +2,4 @@
 
 * 编译命令
 
-    g++ tinyp_structs.cpp handlers.cpp parse.cpp main.cpp -g -o parse_tokens
+    g++ tinyp_structs.cpp lexical_handlers.cpp tinyp_lexer.cpp main.cpp -g -o run
