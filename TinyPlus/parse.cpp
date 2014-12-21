@@ -59,6 +59,39 @@ push_node(
     ptoken_pairs->push_back(*ntp);
     return 0;
 }
+void 
+action_report_error(struct parse_state_t* parse_state)
+{
+    printf("In line: %d col: %d", parse_state->lineno, parse_state->rowno);
+    if (parse_state->err_type & ERROR_ASSIGN){
+        printf(", 赋值语句缺少\"=\"");
+    }
+    if (parse_state->err_type & ERROR_NUMBER){
+        printf(", 数字上的错误后缀");
+    }
+    if (parse_state->err_type & ERROR_STR){
+        printf(", 字符串常量中有换行符,缺少\"’\"");
+    }
+    if (parse_state->err_type & ERROR_TRAN){
+        printf(", 非法的转义序列");
+    }
+    if (parse_state->err_type & ERROR_ILLGAL_CHAR){
+        printf(", 非法字符");
+    }
+    if (parse_state->err_type & ERROR_COMMENT_UNEXPECTED_BRACKET){
+        printf(", 在注释外找到\"}\"");
+    }
+    if (parse_state->err_type & ERROR_COMMENT_UNEXPECTED_EOF){
+        printf(", 在注释中遇到意外的文件结束");
+    }
+    if (parse_state->err_type & ERROR_HEX){
+        printf("十六进制常量中发现非法字符");
+    }
+    if (parse_state->err_type & ERROR_OCT){
+        printf("八进制常量中发现非法字符");
+    }
+    printf("\n");
+}
 
 int 
 parse(
@@ -104,6 +137,15 @@ parse(
         case STA_NUMBER_TMP:
             action = _handler_number_tmp(ch, parse_state, &token_pair);
             break;
+        case STA_OCTNUMBER:
+            action = _handler_number_oct(ch, parse_state, &token_pair);
+            break;
+        case STA_HEXNUMBER_TMP:
+            action = _handler_number_hex_tmp(ch, parse_state, &token_pair);
+            break;
+        case STA_HEXNUMBER:
+            action = _handler_number_hex(ch, parse_state, &token_pair);
+            break;
         case STA_STRING:
             action = _handler_string(ch, parse_state, &token_pair);
             break;
@@ -126,29 +168,7 @@ parse(
             node_init(&token_pair);
             break;
         case ACT_REPORT_ERROR:
-            printf("In line: %d col: %d", parse_state->lineno, parse_state->rowno);
-            if (parse_state->err_type & ERROR_ASSIGN){
-                printf(", 赋值语句缺少\"=\"");
-            }
-            if (parse_state->err_type & ERROR_NUMBER){
-                printf(", 数字上的错误后缀");
-            }
-            if (parse_state->err_type & ERROR_STR){
-                printf(", 字符串常量中有换行符,缺少\"’\"");
-            }
-            if (parse_state->err_type & ERROR_TRAN){
-                printf(", 非法的转义序列");
-            }
-            if (parse_state->err_type & ERROR_ILLGAL_CHAR){
-                printf(", 非法字符");
-            }
-            if (parse_state->err_type & ERROR_COMMENT_UNEXPECTED_BRACKET){
-                printf(", 在注释外找到\"}\"");
-            }
-            if (parse_state->err_type & ERROR_COMMENT_UNEXPECTED_EOF){
-                printf(", 在注释中遇到意外的文件结束");
-            }
-            printf("\n");
+            action_report_error(parse_state);
             token_pair.value.clear();
             if (IGNORE_ERROR){
                 parse_state->cur_state = STA_START;
@@ -167,6 +187,7 @@ parse(
     }
     return 0;
 }
+
 
 
 int 

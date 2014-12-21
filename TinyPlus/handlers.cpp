@@ -258,6 +258,7 @@ int _handler_number_tmp(
     }else {
         if (DEBUG)
             printf("End Num tmp -> Num Hex\n");
+        ptoken_pair->value += ch;
         parse_state->cur_state = STA_HEXNUMBER_TMP;
     }
 
@@ -293,6 +294,92 @@ int _handler_number(
         ptoken_pair->value += ch;
     }
     return ACT_IDLE;
+}
+
+int _handler_number_oct(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair)
+{
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
+        if (DEBUG)
+            printf("End OCT -> Done\n");
+        unget_one_char(ch, parse_state);
+        parse_state->cur_state = STA_DONE;
+        ptoken_pair->kind = TK_OCTNUM;
+        return ACT_PUSH_NODE;
+    }else if (isalpha(ch)){
+        parse_state->err_type |= ERROR_NUMBER;
+        parse_state->cur_state = STA_ERROR;
+        return ACT_REPORT_ERROR;
+    }else if (!isdigit(ch)){
+        parse_state->err_type |= ERROR_ILLGAL_CHAR;
+        parse_state->cur_state = STA_ERROR;
+        return ACT_REPORT_ERROR;
+    }else if (ch >= '0' && ch <= '7'){
+        ptoken_pair->value += ch;
+        return ACT_IDLE;
+    }else{
+        parse_state->cur_state = STA_ERROR;
+        parse_state->err_type |= ERROR_OCT;
+        return ACT_REPORT_ERROR;
+    }
+    return ACT_IDLE;
+}
+
+int _handler_number_hex_tmp(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair)
+{
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
+        if (DEBUG)
+            printf("End HEX TMP -> Done\n");
+        unget_one_char(ch, parse_state);
+        parse_state->err_type |= ERROR_HEX;
+        parse_state->cur_state = STA_ERROR;
+        return ACT_REPORT_ERROR;
+    }else if (!isalnum(ch)){
+        parse_state->cur_state = STA_ERROR;
+        parse_state->err_type |= ERROR_ILLGAL_CHAR|ERROR_HEX;
+        return ACT_REPORT_ERROR;
+    }else if (!ishexnumber(ch)){
+        parse_state->cur_state = STA_ERROR;
+        parse_state->err_type |= ERROR_HEX;
+        return ACT_REPORT_ERROR;
+    }else{
+        if (DEBUG)
+            printf("End HEX TMP -> HEX\n");
+        parse_state->cur_state = STA_HEXNUMBER;
+        ptoken_pair->value += ch;
+        return ACT_IDLE;
+    }
+}
+
+int _handler_number_hex(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair)
+{
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
+        if (DEBUG)
+            printf("End HEX -> Done\n");
+        unget_one_char(ch, parse_state);
+        parse_state->cur_state = STA_DONE;
+        ptoken_pair->kind = TK_HEXNUM;
+        return ACT_PUSH_NODE;
+    }else if (!isalnum(ch)){
+        parse_state->cur_state = STA_ERROR;
+        parse_state->err_type |= ERROR_ILLGAL_CHAR|ERROR_HEX;
+        return ACT_REPORT_ERROR;
+    }else if (!ishexnumber(ch)){
+        parse_state->cur_state = STA_ERROR;
+        parse_state->err_type |= ERROR_HEX;
+        return ACT_REPORT_ERROR;
+    }else {
+        ptoken_pair->value += ch;
+        return ACT_IDLE;
+    }
 }
 
 int _handler_greater(
@@ -442,3 +529,4 @@ int _handler_error(
 
     return ACT_REPORT_ERROR;
 }
+

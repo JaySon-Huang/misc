@@ -63,4 +63,18 @@ int _handler_error(
     struct parse_state_t* parse_state,
     struct token_pair_t* ntp);
 
+int _handler_number_oct(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair);
+
+int _handler_number_hex_tmp(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair);
+
+int _handler_number_hex(
+    int ch, 
+    struct parse_state_t* parse_state,
+    struct token_pair_t* ptoken_pair);
 #endif

@@ -65,6 +65,8 @@ enum Error {
     ERROR_ASSIGN=0x1000,
     ERROR_TRAN=0x2000,
     ERROR_STR=0x4000,
+    ERROR_OCT=0x1,
+    ERROR_HEX=0x2,
 };
 
 enum Action {
