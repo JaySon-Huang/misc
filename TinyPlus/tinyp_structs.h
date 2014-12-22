@@ -6,6 +6,8 @@
 
 #include <string>
 using std::string;
+#include <vector>
+using std::vector;
 
 enum Kind {
     // 关键字
@@ -95,7 +97,11 @@ struct lex_state_t{
     int err_type;//错误类型
     enum State cur_state;
 };
-
+struct parse_state_t{
+    struct token_pair_t cur_token;
+    vector<struct token_pair_t> *ptoken_pairs;
+    int token_pos;
+};
 enum ObjectType {
     OT_FUN,   // 函数
     OT_VAR,   // 变量
@@ -140,10 +146,10 @@ struct symbol_t {
     // int level; // 层次
 };
 
-struct tree_node_t {
+struct syntax_tree_node_t {
     enum NodeType node_type;// 节点类型
     enum ValueType val_type;// 节点值类型
-    struct tree_node_t* child[3];// 子节点
+    struct syntax_tree_node_t* child[3];// 子节点
     struct token_pair_t* token; // 当节点为FACTOR类型时该成员才有效
 };
 
