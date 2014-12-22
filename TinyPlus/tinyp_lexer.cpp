@@ -61,7 +61,7 @@ action_report_error(struct lex_state_t* plex_state)
         printf(", 数字上的错误后缀");
     }
     if (plex_state->err_type & ERROR_STR){
-        printf(", 字符串常量中有换行符,缺少\"’\"");
+        printf(", 字符串常量中有换行符,缺少\"'\"");
     }
     if (plex_state->err_type & ERROR_TRAN){
         printf(", 非法的转义序列");
@@ -215,5 +215,6 @@ unget_one_char(
     ungetc(ch, plex_state->fp);
     if (ch == '\n'){
         plex_state->lineno -= 1;
+        plex_state->rowno = 0;
     }
 }
