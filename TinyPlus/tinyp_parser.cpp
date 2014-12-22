@@ -80,39 +80,42 @@ parse_declarations(
         || pstate->cur_token.kind == TK_BOOL
         || pstate->cur_token.kind == TK_STR )
     {
-        struct token_pair_t 
-            *ptype = &(pstate->cur_token),
-            *pid = NULL;
-
+        struct token_pair_t type,id;
+        token_pair_copy(&type, &pstate->cur_token);
+        
         if (DEBUG)
-            token_pair_print(ptype);
+            token_pair_print(&type);
 
         parse_state_next_token(pstate);
-
+        
         while (1){
-            pid = &(pstate->cur_token);
+            token_pair_copy(&id, &pstate->cur_token);
+            if (DEBUG)
+                token_pair_print(&id);
             if (token_match_one(TK_ID, pstate)){
-                switch (ptype->kind)
+                switch (type.kind)
                 {
                 case TK_INT:
-                    ptable->update(pid, OT_VAR, VT_INT);
+                    ptable->update(&id, OT_VAR, VT_INT);
                     break;
                 case TK_BOOL:
-                    ptable->update(pid, OT_VAR, VT_BOOL);
+                    ptable->update(&id, OT_VAR, VT_BOOL);
                     break;
                 case TK_STR:
-                    ptable->update(pid, OT_VAR, VT_STRING);
+                    ptable->update(&id, OT_VAR, VT_STRING);
                     break;
 
                 default :
                     break;
                 }
                 if (DEBUG)
-                    printf("new identifier: %s\n", pid->value.c_str());
+                    printf("new identifier: %s\n", id.value.c_str());
             }
 
             // 遇到",",则继续解析标识符.否则跳出循环.
-            if (!token_match_one(TK_COMMA, pstate)){
+            if (pstate->cur_token.kind == TK_COMMA){
+                token_match_one(TK_COMMA, pstate);
+            }else{
                 break;
             }
         }

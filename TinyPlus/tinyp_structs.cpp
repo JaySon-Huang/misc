@@ -227,3 +227,12 @@ token_pair_kind_key(struct token_pair_t* p)
     }
     
 }
+
+void
+token_pair_copy(
+    struct token_pair_t *dest,
+    const struct token_pair_t *src)
+{
+    dest->kind = src->kind;
+    dest->value = src->value;
+}

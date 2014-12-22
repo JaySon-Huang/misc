@@ -87,6 +87,8 @@ void
 token_pair_print(struct token_pair_t* ptoken_pair);
 void 
 token_pair_kind_key(struct token_pair_t* ptoken_pair);
+void
+token_pair_copy(struct token_pair_t *dest, const struct token_pair_t *src);
 
 // 保存当前解析状态,出错原因
 struct lex_state_t{
@@ -154,8 +156,8 @@ struct syntax_tree_node_t {
 };
 
 #define DELIMITER ';'
-#define DEBUG 0
+#define DEBUG 1
 #define IGNORE_ERROR 1
-#define DETAIL 0
+#define DETAIL 1
 
 #endif
