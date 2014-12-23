@@ -7,6 +7,7 @@
 #include "tinyp_parser.h"
 #include "symboltable.h"
 #include "syntax_tree.h"
+#include "tinyp_codegen.h"
 
 #include <vector>
 using std::vector;
@@ -27,12 +28,13 @@ int main(int argc, char const *argv[])
         "sample/experiment1_test2_in.txt",
     };*/
     const char* sample[]={
+        "sample/example2.tinyp",
         "sample/example.tinyp",
         "sample/experiment1_test2_in.txt",
         "sample/experiment2_test1_in.txt",
         "sample/experiment2_test2_in.txt",
     };
-    for (int i=0; i != 4; ++i){
+    for (int i=0; i != 1; ++i){
         printf("Lexical analyze file %s\n", sample[i]);
         init_lexer(sample[i], &lex_state, &token_pairs);
 
@@ -48,6 +50,11 @@ int main(int argc, char const *argv[])
         init_parser(&parse_state, &token_pairs);
         tree = parse_program(&parse_state);
         printTree(tree);
+
+        struct code_gen_state_t code_gen_state;
+        struct middle_code_t mid_code;
+        init_code_generator(&mid_code, &code_gen_state);
+        generate_code(tree, &mid_code, &code_gen_state);
 
         destroy_lexer(&lex_state, &token_pairs);
     }
