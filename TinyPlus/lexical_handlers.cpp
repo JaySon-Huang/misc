@@ -270,7 +270,8 @@ int _handler_number(
     struct lex_state_t* plex_state,
     struct token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n') {
+    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+        || ch == '=' || ch == '<' || ch == '>') {
         if (DEBUG)
             printf("End Num -> Done\n");
         unget_one_char(ch, plex_state);
