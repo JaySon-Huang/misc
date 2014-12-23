@@ -19,13 +19,21 @@ int main(int argc, char const *argv[])
     syntax_tree_node_t *tree;
     parse_state_t parse_state;
 
+/*
     const char* sample[]={
         "sample/example.tinyp",
         "sample/myexample.tinyp",
         "sample/experiment1_test1_in.txt",
         "sample/experiment1_test2_in.txt",
+    };*/
+    const char* sample[]={
+        "sample/example.tinyp",
+        "sample/myexample.tinyp",
+        "sample/experiment1_test2_in.txt",
+        "sample/experiment2_test1_in.txt",
+        "sample/experiment2_test2_in.txt",
     };
-    for (int i=0; i != 1; ++i){
+    for (int i=0; i != 5; ++i){
         printf("Lexical analyze file %s\n", sample[i]);
         init_lexer(sample[i], &lex_state, &token_pairs);
 
@@ -40,6 +48,7 @@ int main(int argc, char const *argv[])
         printf("Parsing Tokens...\n");
         init_parser(&parse_state, &token_pairs);
         tree = parse_program(&parse_state);
+        printTree(tree);
 
         destroy_lexer(&lex_state, &token_pairs);
     }
