@@ -1,0 +1,31 @@
+int A,B;
+bool C;
+string D;
+{字符串赋值}
+D:= 'scanner';
+
+{字面布尔值赋值}
+C := true;
+C := false;
+{比较布尔值}
+C := x<200;
+C := 1<2;
+C := 1<=2;
+C := 1=2;
+C := 1>2;
+C := 1>=2;
+{比较算符+布尔字面值}
+C := not true;
+C := true and false;
+C := true or false;
+{比较算符+数值比较}
+C := 1<2 or 1<3;
+C := 2>2 and 2<3;
+C := not x<100;
+{括号}
+C := false and (1<2 or 2<3);
+{布尔字面值+数值比较}
+{C := true and (x<100);}
+
+{表达式}
+A:=A+B*C+D-A-B/D+D;

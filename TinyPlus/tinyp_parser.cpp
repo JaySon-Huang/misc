@@ -212,6 +212,7 @@ parse_statement(struct parse_state_t *pstate)
         default:
             printf("Unexpected Token while parsing statement:");
             token_pair_print(&pstate->cur_token);
+            assert(0);
             break;
     }
     if (DEBUG)
@@ -411,8 +412,10 @@ parse_not_exp(struct parse_state_t *pstate)
                 t->child[0] = p;
             }
             break;
-        case TK_TRUE:
-        case TK_FALSE:
+        case TK_TRUE:case TK_FALSE:
+            // 直接字面布尔值
+            t = new_exp_node(EXP_CONST);
+            token_pair_copy(&t->token, &pstate->cur_token);
             token_match_one(pstate->cur_token.kind, pstate);
             break;
         case TK_LP:case TK_ID:
@@ -421,6 +424,7 @@ parse_not_exp(struct parse_state_t *pstate)
             break;
             
         default:
+            assert(0);
             break;
     }
     return t;
@@ -436,14 +440,9 @@ parse_exp(struct parse_state_t *pstate)
     struct syntax_tree_node_t *t = NULL;
     switch (pstate->cur_token.kind)
     {
-        // 直接字面布尔值
-        case TK_TRUE:case TK_FALSE:
-            t = new_exp_node(EXP_CONST);
-            token_pair_copy(&t->token, &pstate->cur_token);
-            token_match_one(pstate->cur_token.kind, pstate);
-            break;
         case TK_NUM:case TK_HEXNUM:case TK_OCTNUM:
-        case TK_ID:case TK_LP:
+        case TK_ID:case TK_LP:case TK_NOT:
+        case TK_TRUE:case TK_FALSE:
             t = parse_bool_exp(pstate);
             break;
         case TK_STRING:
@@ -485,7 +484,7 @@ parse_compare_exp(struct parse_state_t *pstate)
     return t;
 }
 
-/*
+/* 处理 加减
  */
 struct syntax_tree_node_t*
 parse_arithmetic_exp(struct parse_state_t *pstate)
@@ -506,7 +505,7 @@ parse_arithmetic_exp(struct parse_state_t *pstate)
     return t;
 }
 
-/*
+/* 处理 乘除
  */
 struct syntax_tree_node_t*
 parse_term(struct parse_state_t *pstate){
@@ -555,7 +554,7 @@ parse_factor(struct parse_state_t *pstate)
             break;
         case TK_LP:// -> (logical-or-exp)
             token_match_one(TK_LP, pstate);
-            t = parse_arithmetic_exp(pstate);
+            t = parse_exp(pstate);
             token_match_one(TK_RP, pstate);
             break;
             
