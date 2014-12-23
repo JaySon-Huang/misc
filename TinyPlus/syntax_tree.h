@@ -14,6 +14,12 @@ new_tree_node(
 void 
 parse_state_next_token(struct parse_state_t *pstate);
 
+struct syntax_tree_node_t* 
+new_stmt_node(
+    enum NodeType node_type);
 
+struct syntax_tree_node_t* 
+new_exp_node(
+    enum NodeType node_type);
 
 #endif

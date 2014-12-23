@@ -43,10 +43,57 @@ struct syntax_tree_node_t*
 parse_stmt_sequence(struct parse_state_t *pstate);
 
 struct syntax_tree_node_t* 
-if_stmt(struct parse_state_t *pstate);
+parse_statement(struct parse_state_t *pstate);
 
 struct syntax_tree_node_t* 
-factor(struct parse_state_t *pstate);
+parse_if_stmt(struct parse_state_t *pstate);
 
+struct syntax_tree_node_t* 
+parse_while_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_repeat_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_id_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_read_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_write_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_assign_stmt(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_bool_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_arithmetic_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_or_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_and_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_not_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_factor(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_term(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_compare_exp(struct parse_state_t *pstate);
+
+struct syntax_tree_node_t* 
+parse_string_exp(struct parse_state_t *pstate);
 
 #endif

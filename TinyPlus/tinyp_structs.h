@@ -117,26 +117,34 @@ enum ValueType {
 };
 
 enum NodeType {
-    PROGRAM,       // 程序（开始符号）节点
+    NT_PROGRAM,    // 程序（开始符号）节点
     STMT_SEQUENCE, // 语句列表节点
-    IF_STMT,       // 条件语句节点
-    REPEAT_STMT,   // repeat语句节点
-    ASSIGN_STMT,   // 赋值语句节点
-    READ_STMT,     // read语句节点
-    WRITE_STMT,    // write语句节点
-    WHILE_STMT,    // while语句节点
-    GTR_EXP,       // 大于表达式节点
-    GEQ_EXP,       // 大于等于表达式节点
-    LSS_EXP,       // 小于表达式节点
-    LEQ_EXP,       // 小于等于表达式节点
-    LOG_OR_EXP,    // 逻辑或表达式节点
-    LOG_AND_EXP,   // 逻辑与表达式节点
-    LOG_NOT_EXP,   // 逻辑非表达式节点
-    ADD_EXP,       // 加法表达式节点
-    SUB_EXP,       // 减法表达式节点
-    MUL_EXP,       // 乘法表达式节点
-    DIV_EXP,       // 除法表达式节点
-    FACTOR,        // 原子节点
+
+    STMT_IF,       // 条件语句节点
+    STMT_REPEAT,   // repeat语句节点
+    STMT_ASSIGN,   // 赋值语句节点
+    STMT_READ,     // read语句节点
+    STMT_WRITE,    // write语句节点
+    STMT_WHILE,    // while语句节点
+
+    EXP_GTR,       // 大于表达式节点
+    EXP_GEQ,       // 大于等于表达式节点
+    EXP_LSS,       // 小于表达式节点
+    EXP_LEQ,       // 小于等于表达式节点
+    EXP_LOG_OR,    // 逻辑或表达式节点
+    EXP_LOG_AND,   // 逻辑与表达式节点
+    EXP_LOG_NOT,   // 逻辑非表达式节点
+    EXP_ADD,       // 加法表达式节点
+    EXP_SUB,       // 减法表达式节点
+    EXP_MUL,       // 乘法表达式节点
+    EXP_DIV,       // 除法表达式节点
+
+    EXP_OP,
+    EXP_CONST,
+    EXP_ID,
+    EXP_STR,
+
+    NT_FACTOR,     // 原子节点
 };
 
 struct symbol_t {
@@ -152,6 +160,7 @@ struct syntax_tree_node_t {
     enum NodeType node_type;// 节点类型
     enum ValueType val_type;// 节点值类型
     struct syntax_tree_node_t* child[3];// 子节点
+    struct syntax_tree_node_t* sibiling;// 兄弟节点
     struct token_pair_t* token; // 当节点为FACTOR类型时该成员才有效
 };
 

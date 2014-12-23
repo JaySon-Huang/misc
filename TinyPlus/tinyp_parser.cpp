@@ -59,16 +59,22 @@ init_parser(
     pstate->token_pos = 1;
 }
 
+/* program -> declarations stmt-sequence
+ */
 struct syntax_tree_node_t* 
-parse_program(struct parse_state_t *pstate)
+parse_program(
+    struct parse_state_t *pstate)
 {
+    
+
     SymbolTable symbol_table;
     parse_declarations(&symbol_table, pstate);// 分析变量的声明
-    return NULL;
     // 分析语句列表，返回值就是整个程序的语法树（不包括声明部分）
     return parse_stmt_sequence(pstate);
 }
 
+/* declarations -> decl;declarations|e
+ */
 void 
 parse_declarations(
     SymbolTable *ptable,
@@ -76,6 +82,7 @@ parse_declarations(
 {
     if (DEBUG)
         printf("parsing declarations...\n");
+    
     while (pstate->cur_token.kind == TK_INT
         || pstate->cur_token.kind == TK_BOOL
         || pstate->cur_token.kind == TK_STR )
@@ -136,107 +143,363 @@ parse_stmt_sequence(struct parse_state_t *pstate)
     stmt_first.insert(TK_READ);
     stmt_first.insert(TK_WRITE);
 
-    struct syntax_tree_node_t *t1 = NULL, *t2 = NULL;
-
-    struct token_pair_t first = pstate->cur_token;
-    while (token_match(&stmt_first, pstate)){
-        // 语句的开始符“if、while”等已由上面的match语句匹配,
-        // 因此下面各语句的分析函数（if_stmt()等）不需要匹配开始符。
-        switch (first.kind)
-        {
-        case TK_IF:
-            break;
-        case TK_WHILE:
-            break;
-        case TK_REPEAT:
-            break;
-        case TK_ID:
-            break;
-        case TK_READ:
-            break;
-        case TK_WRITE:
-            break;
-
-        default:
-            break;
-        }
-        if (t1 == NULL){
-            t1 = t2;
-        }else{
-            // 构建parse_STMT_SEQUENCE节点,t1,t2分别为左右孩子
-            t1 = new_tree_node(STMT_SEQUENCE, t1, t2, NULL);
+    struct syntax_tree_node_t *t = parse_statement(pstate), *p = NULL;
+    while (pstate->cur_token.kind != TK_ENDFILE && pstate->cur_token.kind != TK_END
+        && pstate->cur_token.kind != TK_ELSE && pstate->cur_token.kind != TK_UNTIL)
+    {
+        token_match_one(TK_SEMICOLON, pstate);
+        struct syntax_tree_node_t *q = parse_statement(pstate);
+        if (q != NULL){
+            if (t == NULL){
+                t = p = q;
+            }else{
+                p->sibiling = q;
+                p = q;
+            }
         }
     }
-    return t1;
+    return t;
+
 }
 
 struct syntax_tree_node_t* 
-if_stmt(struct parse_state_t *pstate)
+parse_statement(struct parse_state_t *pstate)
 {
-    struct syntax_tree_node_t 
-        *cond_exp = NULL,
-        *then_stmt = NULL,
-        *else_stmt = NULL;
-    // cond_exp = log_or_exp(pstate);// 分析条件表达式
-    then_stmt = parse_stmt_sequence(pstate);// 分析then部分
+    struct syntax_tree_node_t *t = NULL;
+    switch (pstate->cur_token.kind)
+    {
+    case TK_IF:
+        t = parse_if_stmt(pstate);
+        break;
+    case TK_WHILE:
+        t = parse_while_stmt(pstate);
+        break;
+    case TK_REPEAT:
+        t = parse_repeat_stmt(pstate);
+        break;
+    case TK_ID:
+        t = parse_id_stmt(pstate);
+        break;
+    case TK_READ:
+        t = parse_read_stmt(pstate);
+        break;
+    case TK_WRITE:
+        t = parse_write_stmt(pstate);
+        break;
+
+    default:
+        printf("Unexpected Token:\n");
+        token_pair_print(&pstate->cur_token);
+        break;
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_if_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_IF);
+    token_match_one(TK_IF, pstate);
+    if (t != NULL){
+        t->child[0] = parse_bool_exp(pstate);
+    }
+    token_match_one(TK_THEN, pstate);
+    if (t != NULL){
+        t->child[1] = parse_stmt_sequence(pstate);
+    }
     if (pstate->cur_token.kind == TK_ELSE){
-        else_stmt = parse_stmt_sequence(pstate);
+        token_match_one(TK_ELSE, pstate);
+        if (t != NULL){
+            t->child[2] = parse_stmt_sequence(pstate);
+        }
     }
-
-    // 语义检查
-    if (cond_exp->val_type != VT_BOOL){
-        printf("表达式的值必须为bool类型.\n");
-    }
-
-    // 构建IF_STMT节点，有3个孩子，
-    // 分别是条件表达式、then语句和else语句；若没有else语句，则第三个孩子为null
-    return new_tree_node(IF_STMT, cond_exp, then_stmt, else_stmt);
+    token_match_one(TK_END, pstate);
+    return t;
 }
 
 struct syntax_tree_node_t* 
-factor(struct parse_state_t *pstate)
+parse_while_stmt(struct parse_state_t *pstate)
 {
-    set<enum Kind> factor_first;
-    factor_first.insert(TK_INT);
-    factor_first.insert(TK_STR);
-    factor_first.insert(TK_ID);
-    factor_first.insert(TK_TRUE);
-    factor_first.insert(TK_FALSE);
-    factor_first.insert(TK_LP);
-
-    if (token_in(&factor_first, pstate)){
-        printf("非法符号.\n");
-        return NULL;
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_WHILE);
+    token_match_one(TK_WHILE, pstate);
+    if (t != NULL){
+        t->child[0] = parse_bool_exp(pstate);
     }
-
-    syntax_tree_node_t *node = NULL, *exp = NULL;
-    if (pstate->cur_token.kind == TK_LP){
-        // factor -> (logical-or-exp)
-        token_match_one(TK_LP, pstate);
-        // exp = log_or_exp();
-        node = new_tree_node(FACTOR, exp, NULL, NULL);
-        node->val_type = exp->val_type;
-        token_match_one(TK_RP, pstate);
-    }else{
-        // factor  -> number | string | identifier | true | false 
-        // node = new_tree_node(FACTOR, pstate->cur_token);// token 做为FACTOR节点的孩子
-        switch (pstate->cur_token.kind)
-        {
-        case TK_INT:
-            node->val_type = VT_INT;
-            break;
-        case TK_BOOL:
-            node->val_type = VT_BOOL;
-            break;
-        case TK_STR:
-            node->val_type = VT_STRING;
-            break;
-
-        default:
-            break;
-        }
-        token_match(&factor_first, pstate);
+    token_match_one(TK_DO, pstate);
+    if (t != NULL){
+        t->child[1] = parse_stmt_sequence(pstate);
     }
-    return node;
+    token_match_one(TK_END, pstate);
+    return t;
 }
 
+struct syntax_tree_node_t* 
+parse_repeat_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_REPEAT);
+    token_match_one(TK_REPEAT, pstate);
+    if (t != NULL){
+        t->child[0] = parse_stmt_sequence(pstate);
+    }
+    token_match_one(TK_UNTIL, pstate);
+    if (t != NULL){
+        t->child[1] = parse_bool_exp(pstate);
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_id_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = NULL;
+    
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_read_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_READ);
+    token_match_one(TK_READ, pstate);
+    if (t != NULL && pstate->cur_token.kind == TK_ID){
+        token_pair_copy(t->token, &pstate->cur_token);
+    }
+    token_match_one(TK_ID, pstate);
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_write_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_WRITE);
+    token_match_one(TK_WRITE, pstate);
+    if (t != NULL){
+        t->child[0] = parse_exp(pstate);
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_assign_stmt(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_stmt_node(STMT_ASSIGN);
+    if (t != NULL && pstate->cur_token.kind == TK_ID){
+        token_pair_copy(t->token, &pstate->cur_token);
+    }
+    token_match_one(TK_ID, pstate);
+    token_match_one(TK_ASSIGN, pstate);
+    if (t != NULL){
+        t->child[0] = parse_exp(pstate);
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_bool_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = parse_or_exp(pstate);
+    
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_or_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = parse_and_exp(pstate);
+    struct syntax_tree_node_t *p = t;
+    while (t != NULL && pstate->cur_token.kind == TK_OR){
+        struct syntax_tree_node_t *q = NULL;
+        p = new_exp_node(EXP_OP);
+        token_pair_copy(p->token, &pstate->cur_token);
+        token_match_one(TK_OR, pstate);
+        p->child[0] = t;
+        t = p;
+        q = parse_and_exp(pstate);
+        if (q != NULL){
+            t->child[1] = q;
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_and_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = parse_not_exp(pstate);
+    struct syntax_tree_node_t *p = t;
+    while (t != NULL && pstate->cur_token.kind == TK_AND){
+        struct syntax_tree_node_t *q = NULL;
+        p = new_exp_node(EXP_OP);
+        token_pair_copy(p->token, &pstate->cur_token);
+        token_match_one(TK_AND, pstate);
+        p->child[0] = t;
+        t = p;
+        q = parse_not_exp(pstate);
+        if (q != NULL){
+            t->child[1] = q;
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_not_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = NULL;
+    switch (pstate->cur_token.kind)
+    {
+    case TK_NOT:
+        token_match_one(TK_NOT, pstate);
+        t = parse_exp(pstate);
+        break;
+    case TK_TRUE:
+    case TK_FALSE:
+        token_match_one(pstate->cur_token.kind, pstate);
+        break;
+    case TK_LP:case TK_ID:
+    case TK_NUM:case TK_HEXNUM:case TK_OCTNUM:
+        t = parse_compare_exp(pstate);
+        break;
+
+    default:
+        break;
+    }
+    struct syntax_tree_node_t *p = t;
+    while (t != NULL && pstate->cur_token.kind == TK_AND){
+        struct syntax_tree_node_t *q = NULL;
+        p = new_exp_node(EXP_OP);
+        token_pair_copy(p->token, &pstate->cur_token);
+        token_match_one(TK_AND, pstate);
+        p->child[0] = t;
+        t = p;
+        q = parse_not_exp(pstate);
+        if (q != NULL){
+            t->child[1] = q;
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = NULL;
+    switch (pstate->cur_token.kind)
+    {
+    case TK_NUM:case TK_HEXNUM:case TK_OCTNUM:
+    case TK_ID:case TK_LP:
+        t = parse_bool_exp(pstate);
+        break;
+    case TK_STRING:
+        t = parse_string_exp(pstate);
+        break;
+
+    default:
+        printf("Unexpected Token:\n");
+        token_pair_print(&pstate->cur_token);
+        break;
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_compare_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = parse_arithmetic_exp(pstate);
+    enum Kind kind = pstate->cur_token.kind;
+    if (kind == TK_LESS || kind == TK_GREATER || kind == TK_EQU
+        || kind == TK_GEQ || kind == TK_LEQ)
+    {
+        struct syntax_tree_node_t *p = new_exp_node(EXP_OP);
+        if (p != NULL){
+            p->child[0] = t;
+            token_pair_copy(p->token, &pstate->cur_token);
+            t = p;
+            token_match_one(pstate->cur_token.kind, pstate);
+            if (t != NULL){
+                t->child[1] = parse_arithmetic_exp(pstate);
+            }
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_arithmetic_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = parse_term(pstate);
+    while (pstate->cur_token.kind == TK_ADD 
+        || pstate->cur_token.kind == TK_SUB)
+    {
+        struct syntax_tree_node_t *p = new_exp_node(EXP_OP);
+        if (p != NULL){
+            p->child[0] = t;
+            token_pair_copy(p->token, &pstate->cur_token);
+            t = p;
+            token_match_one(pstate->cur_token.kind, pstate);
+            p->child[1] = parse_term(pstate);
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_term(struct parse_state_t *pstate){
+    struct syntax_tree_node_t *t = parse_factor(pstate);
+    while (pstate->cur_token.kind == TK_MUL
+        || pstate->cur_token.kind == TK_DIV)
+    {
+        struct syntax_tree_node_t *p = new_exp_node(EXP_OP);
+        if (p != NULL){
+            p->child[0] = t;
+            token_pair_copy(p->token, &pstate->cur_token);
+            t = p;
+            token_match_one(pstate->cur_token.kind, pstate);
+            p->child[1] = parse_factor(pstate);
+        }
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_factor(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = NULL;
+    switch(pstate->cur_token.kind)
+    {
+    case TK_NUM:
+        t = new_exp_node(EXP_CONST);
+        if (t != NULL && pstate->cur_token.kind == TK_NUM){
+            token_pair_copy(t->token, &pstate->cur_token);
+        }
+        token_match_one(TK_NUM, pstate);
+        break;
+    case TK_ID:
+        t = new_exp_node(EXP_ID);
+        if (t != NULL && pstate->cur_token.kind == TK_ID){
+            token_pair_copy(t->token, &pstate->cur_token);
+        }
+        token_match_one(TK_ID, pstate);
+        break;
+    case TK_LP:
+        token_match_one(TK_LP, pstate);
+        t = parse_arithmetic_exp(pstate);
+        token_match_one(TK_RP, pstate);
+        break;
+
+    default:
+        break;
+    }
+    return t;
+}
+
+struct syntax_tree_node_t* 
+parse_string_exp(struct parse_state_t *pstate)
+{
+    struct syntax_tree_node_t *t = new_exp_node(EXP_STR);
+    if (t != NULL){
+        token_pair_copy(t->token, &pstate->cur_token);
+        token_match_one(TK_STRING, pstate);
+    }
+    return t;
+}
