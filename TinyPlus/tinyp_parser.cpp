@@ -2,6 +2,8 @@
 #include "tinyp_parser.h"
 #include "syntax_tree.h"
 
+#include <assert.h>
+
 int
 token_in(
     const set<enum Kind> *pset,
@@ -340,7 +342,11 @@ parse_assign_stmt(struct parse_state_t *pstate)
 struct syntax_tree_node_t*
 parse_bool_exp(struct parse_state_t *pstate)
 {
+    if (DEBUG)
+        printf("Parsing Bool expression\n");
     struct syntax_tree_node_t *t = parse_or_exp(pstate);
+    if (DEBUG)
+        printf("End of Bool expression\n");
     return t;
 }
 
@@ -430,6 +436,12 @@ parse_exp(struct parse_state_t *pstate)
     struct syntax_tree_node_t *t = NULL;
     switch (pstate->cur_token.kind)
     {
+        // 直接字面布尔值
+        case TK_TRUE:case TK_FALSE:
+            t = new_exp_node(EXP_CONST);
+            token_pair_copy(&t->token, &pstate->cur_token);
+            token_match_one(pstate->cur_token.kind, pstate);
+            break;
         case TK_NUM:case TK_HEXNUM:case TK_OCTNUM:
         case TK_ID:case TK_LP:
             t = parse_bool_exp(pstate);
@@ -439,8 +451,9 @@ parse_exp(struct parse_state_t *pstate)
             break;
             
         default:
-            printf("Unexpected Token:\n");
+            printf("Unexpected Token:");
             token_pair_print(&pstate->cur_token);
+            assert(0);
             break;
     }
     if (DEBUG)
@@ -547,6 +560,7 @@ parse_factor(struct parse_state_t *pstate)
             break;
             
         default:
+            assert(0);
             break;
     }
     return t;
