@@ -393,12 +393,17 @@ parse_and_exp(struct parse_state_t *pstate)
 struct syntax_tree_node_t*
 parse_not_exp(struct parse_state_t *pstate)
 {
-    struct syntax_tree_node_t *t = NULL;
+    struct syntax_tree_node_t *t = NULL, *p=NULL;
     switch (pstate->cur_token.kind)
     {
         case TK_NOT:
+            t = new_exp_node(EXP_OP);
+            token_pair_copy(&t->token, &pstate->cur_token);
             token_match_one(TK_NOT, pstate);
-            t = parse_exp(pstate);
+            p = parse_exp(pstate);
+            if (p != NULL){
+                t->child[0] = p;
+            }
             break;
         case TK_TRUE:
         case TK_FALSE:
@@ -411,19 +416,6 @@ parse_not_exp(struct parse_state_t *pstate)
             
         default:
             break;
-    }
-    struct syntax_tree_node_t *p = t;
-    while (t != NULL && pstate->cur_token.kind == TK_AND){
-        struct syntax_tree_node_t *q = NULL;
-        p = new_exp_node(EXP_OP);
-        token_pair_copy(&p->token, &pstate->cur_token);
-        token_match_one(TK_AND, pstate);
-        p->child[0] = t;
-        t = p;
-        q = parse_not_exp(pstate);
-        if (q != NULL){
-            t->child[1] = q;
-        }
     }
     return t;
 }

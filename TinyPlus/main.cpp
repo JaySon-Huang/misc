@@ -28,12 +28,11 @@ int main(int argc, char const *argv[])
     };*/
     const char* sample[]={
         "sample/example.tinyp",
-        "sample/myexample.tinyp",
         "sample/experiment1_test2_in.txt",
         "sample/experiment2_test1_in.txt",
         "sample/experiment2_test2_in.txt",
     };
-    for (int i=0; i != 5; ++i){
+    for (int i=0; i != 4; ++i){
         printf("Lexical analyze file %s\n", sample[i]);
         init_lexer(sample[i], &lex_state, &token_pairs);
 
