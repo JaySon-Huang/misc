@@ -74,6 +74,9 @@ parse_program(
 }
 
 /* declarations -> decl;declarations|e
+ * decl -> type-specifier varlist
+ * type-specifier -> int|bool|string
+ * varlist -> identifier[, varlist]
  */
 void 
 parse_declarations(
@@ -82,7 +85,7 @@ parse_declarations(
 {
     if (DEBUG)
         printf("parsing declarations...\n");
-    
+    // type-specifier -> int|bool|string
     while (pstate->cur_token.kind == TK_INT
         || pstate->cur_token.kind == TK_BOOL
         || pstate->cur_token.kind == TK_STR )
@@ -94,7 +97,7 @@ parse_declarations(
             token_pair_print(&type);
 
         parse_state_next_token(pstate);
-        
+        // varlist -> identifier[, varlist]
         while (1){
             token_pair_copy(&id, &pstate->cur_token);
             if (DEBUG)
@@ -112,7 +115,7 @@ parse_declarations(
                     ptable->update(&id, OT_VAR, VT_STRING);
                     break;
 
-                default :
+                default :// 不可能到达
                     break;
                 }
                 if (DEBUG)
@@ -132,6 +135,8 @@ parse_declarations(
         printf("End of declarations\n");
 }
 
+/* stmt-sequenct -> statement[; stmt-sequence]
+ */
 struct syntax_tree_node_t* 
 parse_stmt_sequence(struct parse_state_t *pstate)
 {
@@ -162,6 +167,9 @@ parse_stmt_sequence(struct parse_state_t *pstate)
 
 }
 
+/* statement -> if-stmt|repeat-stmt|while-stmt
+ *              |assign-stmt|read-stmt|write-stmt
+ */
 struct syntax_tree_node_t* 
 parse_statement(struct parse_state_t *pstate)
 {
@@ -178,7 +186,7 @@ parse_statement(struct parse_state_t *pstate)
         t = parse_repeat_stmt(pstate);
         break;
     case TK_ID:
-        t = parse_id_stmt(pstate);
+        t = parse_assign_stmt(pstate);
         break;
     case TK_READ:
         t = parse_read_stmt(pstate);
@@ -195,6 +203,9 @@ parse_statement(struct parse_state_t *pstate)
     return t;
 }
 
+/* if-stmt -> if logical-or-exp then stmt-sequence 
+ *             [else stmt-sequence] end
+ */
 struct syntax_tree_node_t* 
 parse_if_stmt(struct parse_state_t *pstate)
 {
@@ -217,6 +228,8 @@ parse_if_stmt(struct parse_state_t *pstate)
     return t;
 }
 
+/* while-stmt -> while logical-or-exp do stmt-sequence end
+ */
 struct syntax_tree_node_t* 
 parse_while_stmt(struct parse_state_t *pstate)
 {
@@ -233,6 +246,8 @@ parse_while_stmt(struct parse_state_t *pstate)
     return t;
 }
 
+/* repeat-stmt -> repeat stmt-sequence until logical-or-exp
+ */
 struct syntax_tree_node_t* 
 parse_repeat_stmt(struct parse_state_t *pstate)
 {
@@ -248,14 +263,8 @@ parse_repeat_stmt(struct parse_state_t *pstate)
     return t;
 }
 
-struct syntax_tree_node_t* 
-parse_id_stmt(struct parse_state_t *pstate)
-{
-    struct syntax_tree_node_t *t = NULL;
-    
-    return t;
-}
-
+/* read-stmt -> read identifier
+ */
 struct syntax_tree_node_t* 
 parse_read_stmt(struct parse_state_t *pstate)
 {
@@ -268,6 +277,8 @@ parse_read_stmt(struct parse_state_t *pstate)
     return t;
 }
 
+/* write-stmt -> write logical-or-exp
+ */
 struct syntax_tree_node_t* 
 parse_write_stmt(struct parse_state_t *pstate)
 {
@@ -279,6 +290,8 @@ parse_write_stmt(struct parse_state_t *pstate)
     return t;
 }
 
+/* assign-stmt -> identifier := logical-or-exp
+ */
 struct syntax_tree_node_t* 
 parse_assign_stmt(struct parse_state_t *pstate)
 {
@@ -294,14 +307,17 @@ parse_assign_stmt(struct parse_state_t *pstate)
     return t;
 }
 
+/* bool-exp -> logical-or-exp
+ */
 struct syntax_tree_node_t* 
 parse_bool_exp(struct parse_state_t *pstate)
 {
     struct syntax_tree_node_t *t = parse_or_exp(pstate);
-    
     return t;
 }
 
+/* logical-or-exp -> logical-and-exp[or logical-or-exp]
+ */
 struct syntax_tree_node_t* 
 parse_or_exp(struct parse_state_t *pstate)
 {
@@ -322,6 +338,8 @@ parse_or_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/* logical-and-exp -> comparison-exp[and logical-and-exp]
+ */
 struct syntax_tree_node_t* 
 parse_and_exp(struct parse_state_t *pstate)
 {
@@ -342,6 +360,8 @@ parse_and_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/*
+ */
 struct syntax_tree_node_t* 
 parse_not_exp(struct parse_state_t *pstate)
 {
@@ -380,6 +400,8 @@ parse_not_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/*
+ */
 struct syntax_tree_node_t* 
 parse_exp(struct parse_state_t *pstate)
 {
@@ -402,6 +424,8 @@ parse_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/* comparison-exp -> add-exp [comparison-op comparison-exp]
+ */
 struct syntax_tree_node_t* 
 parse_compare_exp(struct parse_state_t *pstate)
 {
@@ -424,6 +448,8 @@ parse_compare_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/*
+ */
 struct syntax_tree_node_t* 
 parse_arithmetic_exp(struct parse_state_t *pstate)
 {
@@ -443,6 +469,8 @@ parse_arithmetic_exp(struct parse_state_t *pstate)
     return t;
 }
 
+/*
+ */
 struct syntax_tree_node_t* 
 parse_term(struct parse_state_t *pstate){
     struct syntax_tree_node_t *t = parse_factor(pstate);
@@ -461,6 +489,9 @@ parse_term(struct parse_state_t *pstate){
     return t;
 }
 
+/* factor -> number|string|identifier
+ *            |true|false|(logical-or-exp)
+ */
 struct syntax_tree_node_t* 
 parse_factor(struct parse_state_t *pstate)
 {
@@ -493,6 +524,8 @@ parse_factor(struct parse_state_t *pstate)
     return t;
 }
 
+/*
+ */
 struct syntax_tree_node_t* 
 parse_string_exp(struct parse_state_t *pstate)
 {

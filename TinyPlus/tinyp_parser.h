@@ -55,9 +55,6 @@ struct syntax_tree_node_t*
 parse_repeat_stmt(struct parse_state_t *pstate);
 
 struct syntax_tree_node_t* 
-parse_id_stmt(struct parse_state_t *pstate);
-
-struct syntax_tree_node_t* 
 parse_read_stmt(struct parse_state_t *pstate);
 
 struct syntax_tree_node_t* 
