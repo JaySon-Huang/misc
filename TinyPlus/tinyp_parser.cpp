@@ -530,21 +530,25 @@ parse_factor(struct parse_state_t *pstate)
     struct syntax_tree_node_t *t = NULL;
     switch(pstate->cur_token.kind)
     {
-        case TK_NUM:
+        case TK_NUM:case TK_OCTNUM:case TK_HEXNUM:
             t = new_exp_node(EXP_CONST);
-            if (t != NULL && pstate->cur_token.kind == TK_NUM){
+            if (t != NULL 
+                && (pstate->cur_token.kind == TK_NUM
+                    || pstate->cur_token.kind == TK_OCTNUM
+                    || pstate->cur_token.kind == TK_HEXNUM) )
+            {
                 token_pair_copy(&t->token, &pstate->cur_token);
             }
-            token_match_one(TK_NUM, pstate);
+            token_match_one(pstate->cur_token.kind, pstate);
             break;
-        case TK_ID:
+        case TK_ID:// -> 
             t = new_exp_node(EXP_ID);
             if (t != NULL && pstate->cur_token.kind == TK_ID){
                 token_pair_copy(&t->token, &pstate->cur_token);
             }
             token_match_one(TK_ID, pstate);
             break;
-        case TK_LP:
+        case TK_LP:// -> (logical-or-exp)
             token_match_one(TK_LP, pstate);
             t = parse_arithmetic_exp(pstate);
             token_match_one(TK_RP, pstate);

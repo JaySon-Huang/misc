@@ -51,3 +51,63 @@ new_exp_node(
     }
     return n;
 }
+
+static unsigned int indent = 0;
+
+static 
+void 
+print_indent()
+{
+    for (int i=0; i!= indent; ++i)  printf(" ");
+}
+
+void printTree(struct syntax_tree_node_t* root)
+{
+    if (root == NULL) return;
+    indent += 2;
+    while (root != NULL) {
+        print_indent();
+        switch (root->node_type)
+        {
+        case STMT_IF:
+            printf("If\n");
+            break;
+        case STMT_REPEAT:
+            printf("Repeat\n");
+            break;
+        case STMT_WHILE:
+            printf("While\n");
+            break;
+        case STMT_ASSIGN:
+            printf("Assign to : %s\n", root->token.value.c_str());
+            break;
+        case STMT_READ:
+            printf("Read : %s\n", root->token.value.c_str());
+            break;
+        case STMT_WRITE:
+            printf("Write : %s\n", root->token.value.c_str());
+            break;
+
+        case EXP_OP:
+            printf("Op: %s\n", root->token.value.c_str());
+            break;
+        case EXP_CONST:
+            printf("Const: %s\n", root->token.value.c_str());
+            break;
+        case EXP_ID:
+            printf("ID : %s\n", root->token.value.c_str());
+            break;
+        case EXP_STR:
+            printf("Str : %s\n", root->token.value.c_str());
+            break;
+
+        default:
+            printf("Unknown NodeType\n");
+            break;
+        }
+        for (int i=0; i != 3; ++i)
+            printTree(root->child[i]);
+        root = root->sibiling;
+    }
+    indent -= 2;
+}

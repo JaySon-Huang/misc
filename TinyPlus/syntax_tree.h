@@ -22,4 +22,6 @@ struct syntax_tree_node_t*
 new_exp_node(
     enum NodeType node_type);
 
+void printTree(struct syntax_tree_node_t* root);
+
 #endif
