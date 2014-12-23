@@ -157,6 +157,11 @@ parse(
             ptoken_pairs->push_back(token_pair);
             node_init(&token_pair);
             break;
+        case ACT_COMMENT:
+            if (DEBUG)
+                printf("Comment: %s\n", token_pair.value.c_str());
+            node_init(&token_pair);
+            break;
         case ACT_REPORT_ERROR:
             action_report_error(plex_state);
             token_pair.value.clear();

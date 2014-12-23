@@ -76,6 +76,7 @@ enum Action {
     ACT_EXIT, // 退出解析
     ACT_PUSH_NODE,// 把结点接到链表中
     ACT_REPORT_ERROR, // 报告错误
+    ACT_COMMENT,// 解析到注释
 };
 // 保存解析出来的token串的链表结点
 struct token_pair_t{
@@ -161,7 +162,7 @@ struct syntax_tree_node_t {
     enum ValueType val_type;// 节点值类型
     struct syntax_tree_node_t* child[3];// 子节点
     struct syntax_tree_node_t* sibiling;// 兄弟节点
-    struct token_pair_t* token; // 当节点为FACTOR类型时该成员才有效
+    struct token_pair_t token; // 当节点为FACTOR类型时该成员才有效
 };
 
 #define DELIMITER ';'

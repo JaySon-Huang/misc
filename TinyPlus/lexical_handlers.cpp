@@ -120,7 +120,7 @@ int _handler_comment(
             printf("End Comment -> Start\n");
         ptoken_pair->kind = TK_COMMENT;
         plex_state->cur_state = STA_START;
-        return ACT_PUSH_NODE;
+        return ACT_COMMENT;
     }else {
         // 注释的内容
         ptoken_pair->value += ch;
