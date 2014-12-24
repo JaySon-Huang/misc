@@ -1,23 +1,28 @@
 #include "assert.h"
 #include "tinyp_codegen.h"
 
+#include <vector>
+using std::vector;
+
 int code_gen_next_index(struct code_gen_state_t *pstate);
 
 static void gen_stmt(
     struct syntax_tree_node_t *root,
-    struct middle_code_t* pmid_code,
-    struct code_gen_state_t *pstate);
-static char* gen_exp(
+    struct middle_code_t* pfa_code,
+    struct code_gen_state_t *pstate,
+    vector<struct middle_code_t> *pcode_vec);
+static void gen_exp(
     struct syntax_tree_node_t *root,
-    struct middle_code_t* pmid_code,
-    struct code_gen_state_t *pstate);
+    struct middle_code_t* pfa_code,
+    struct code_gen_state_t *pstate,
+    vector<struct middle_code_t> *pcode_vec);
 
 void init_code_generator(
     struct middle_code_t *pmid_code,
     struct code_gen_state_t *pstate)
 {
     pstate->code_line = 1;
-    pstate->tmp_index = 1;
+    pstate->tmp_index = 0;
     pstate->label_index = 0;
 
     pmid_code->LBegin = pmid_code->LNext = pmid_code->LTrue = pmid_code->LFalse = 0;
@@ -28,14 +33,22 @@ int code_gen_next_index(struct code_gen_state_t *pstate)
     return (pstate->label_index)++;
 }
 
-char* 
+int code_gen_next_tmp(struct code_gen_state_t *pstate)
+{
+    return (pstate->tmp_index)++;
+}
+void code_init_tmp(struct code_gen_state_t *pstate)
+{
+    pstate->tmp_index = 0;
+}
+
+void 
 generate_code(
     struct syntax_tree_node_t *root,
-    struct middle_code_t* pmid_code,
-    struct code_gen_state_t *pstate)
+    struct middle_code_t* pfa_code,
+    struct code_gen_state_t *pstate,
+    vector<struct middle_code_t> *pcode_vec)
 {
-    struct middle_code_t E,E1;
-    char *str = NULL;
     while (root != NULL){
         switch (root->node_type)
         {
@@ -45,233 +58,178 @@ generate_code(
         case STMT_READ:
         case STMT_WRITE:
         case STMT_WHILE:
-            E.LNext = code_gen_next_index(pstate);
-            E1.LNext = pmid_code->LNext;
-            gen_stmt(root, &E, pstate);
+            gen_stmt(root, pfa_code, pstate, pcode_vec);
             break;
         case EXP_OP:
         case EXP_CONST:
         case EXP_ID:
         case EXP_STR:
-            str = gen_exp(root, pmid_code, pstate);
+            gen_exp(root, pfa_code, pstate, pcode_vec);
             break;
         default:
             break;
         }
         root = root->sibiling;
     }
-    return str;
 }
 
 static void gen_stmt(
     struct syntax_tree_node_t *root,
-    struct middle_code_t* pmid_code,
-    struct code_gen_state_t *pstate)
+    struct middle_code_t* pfa_code,
+    struct code_gen_state_t *pstate,
+    vector<struct middle_code_t> *pcode_vec)
 {
-    char *str1;
-    struct middle_code_t E,E1,E2;
+    char t[20];
+    memset(t, 0, sizeof(t));
+    struct middle_code_t code, label, label2;
+    label.is_label = true;
     switch(root->node_type)
     {
     case STMT_IF:
-        E.LTrue = code_gen_next_index(pstate);
-        if(root->child[2] == NULL){
-            // 没有else字句
-            E.LFalse = pmid_code->LNext;
-            E1.LNext = pmid_code->LNext;
-            E.is_stmt = 1;
-            gen_stmt(root->child[0],&E, pstate);
-            if(root->child[1] != NULL)
-                printf("(%d)Label L%d\n",pstate->code_line++,E.LTrue);
-            generate_code(root->child[1],&E1, pstate);
+        if (DEBUG)
+            printf("Generating code for if.\n");
+        code.op = "jnz";
+        sprintf(t, "Label %2d", code_gen_next_index(pstate));
+        code.store.assign(t);
+        gen_exp(root->child[0], &code, pstate, pcode_vec);
+        pcode_vec->push_back(code);
+        if (DEBUG)
+            printf("(%3s, %s, %s, %s)\n",
+                code.op.c_str(), code.larg.c_str(), code.rarg.c_str(),
+                code.store.c_str());
+        generate_code(root->child[1], NULL, pstate, pcode_vec);
+        
+        // label记着if失败的位置
+        label.store.assign(code.store);
+
+        if (root->child[2] == NULL){
+            printf("%s\n", label.store.c_str());
         }else{
-            // 有else子句
-            E.LFalse = code_gen_next_index(pstate);
-            E.is_stmt = 1;
-            E1.LNext = pmid_code->LNext;
-            E2.LNext = pmid_code->LNext;
-            gen_stmt(root->child[0],&E, pstate);
-            if(root->child[0]!=NULL)
-                printf("(%d)Label L%d\n",pstate->code_line++,E.LTrue);
-            generate_code(root->child[1],&E1, pstate);
-            printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LNext);  
-            if(root->child[1]!=NULL)
-                printf("(%d)Label L%d\n",pstate->code_line++,E.LFalse);
-            generate_code(root->child[2], &E2, pstate);
+            // 执行完if为真的情况,跳出if-else
+            code.op = "jump";
+            code.larg = "";code.rarg = "";
+            sprintf(t, "Label %2d", code_gen_next_index(pstate));
+            code.store.assign(t);
+            pcode_vec->push_back(code);
+            if (DEBUG)
+                printf("(%3s, %s, %s, %s)\n",
+                    code.op.c_str(), code.larg.c_str(), code.rarg.c_str(),
+                    code.store.c_str());
+            // 处理else
+            printf("%s\n", label.store.c_str());
+            pcode_vec->push_back(label);
+            generate_code(root->child[2], NULL, pstate, pcode_vec);
+            label.store.assign(code.store);
+            // 完全跳出的位置
+            pcode_vec->push_back(label);
+            printf("%s\n", label.store.c_str());
         }
         break;
 
     case STMT_WHILE:
-        E.is_stmt=1;
-        pmid_code->LBegin = code_gen_next_index(pstate);
-        E.LTrue = code_gen_next_index(pstate);
-        E.LFalse = pmid_code->LNext;
-        E1.LNext = pmid_code->LBegin;
-        printf("(%d)Label L%d\n",pstate->code_line++,pmid_code->LBegin);
-        gen_stmt(root->child[0],&E, pstate);
-        if(root->child[1]!=NULL)
-            printf("(%d)Label L%d\n",pstate->code_line++,E.LTrue);
-        generate_code(root->child[1],&E1, pstate);
-        printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LBegin);
+        if (DEBUG)
+            printf("Generating code for while.\n");
         break;
 
     case STMT_REPEAT:
-        pmid_code->LBegin = code_gen_next_index(pstate);
-        E1.LNext = code_gen_next_index(pstate);
-        E.LTrue = pmid_code->LNext;
-        E.LFalse = pmid_code->LBegin;
-        E.is_stmt=1;
-        if(root->child[0]!=NULL)
-            printf("(%d)Label L%d\n",pstate->code_line++,pmid_code->LBegin);
-        generate_code(root->child[0],&E1, pstate);
-        printf("(%d)Label L%d\n",pstate->code_line++,E1.LNext);
-        gen_stmt(root->child[1],&E, pstate);     
+        if (DEBUG)
+            printf("Generating code for repeat.\n");
         break;
 
     case STMT_ASSIGN:
-        str1 = generate_code(root->child[0], pmid_code, pstate);
-        printf("(%d)%s:=%s\n", pstate->code_line++, root->token.value.c_str(), str1);
-        free (str1);
+        if (DEBUG)
+            printf("Generating code for assign.\n");
+        code.op = ":=";
+        code.store = root->token.value;
+        gen_exp(root->child[0], &code, pstate, pcode_vec);
+        if (DEBUG)
+            printf("(%3s, %s, %s, %s)\n",
+                code.op.c_str(), code.larg.c_str(), code.rarg.c_str(),
+                code.store.c_str());
         break;
 
     case STMT_READ:
-        printf("(%d)read %s\n", pstate->code_line++, root->token.value.c_str());
+        if (DEBUG)
+            printf("Generating code for read.\n");
+        code.op = "read";
+        code.store = root->token.value;
         break;
 
     case STMT_WRITE:
-        /* generate code for expression to write */
-        str1 = generate_code(root->child[0], pmid_code, pstate);
-        printf("(%d)write %s\n", pstate->code_line++,str1);
-        free (str1);
+        if (DEBUG)
+            printf("Generating code for write.\n");
+        code.op = "write";
+        code.larg = root->token.value;
         break;
     default:
         break;
     }
+    code_init_tmp(pstate);
+
 }
-static char* gen_exp(
+static void gen_exp(
     struct syntax_tree_node_t *root,
-    struct middle_code_t* pmid_code,
-    struct code_gen_state_t *pstate)
+    struct middle_code_t* pfa_code,
+    struct code_gen_state_t *pstate,
+    vector<struct middle_code_t> *pcode_vec)
 {
-    char *str1,*str2;
-    char *str=(char*)malloc(20);
-    struct middle_code_t E1, E2;
+    struct middle_code_t code;
+    char t[10];
     switch (root->node_type)
-    {       
+    {
     case EXP_CONST:
-        sprintf(str, "%s", root->token.value.c_str());
-        break;
     case EXP_STR:
     case EXP_ID:
-        strcpy(str, root->token.value.c_str());
+        if (pfa_code->larg == ""){
+            pfa_code->larg = root->token.value;
+        }else if (pfa_code->rarg == ""){
+            pfa_code->rarg = root->token.value;
+        }else {
+            assert(0);
+        }
         break;
     case EXP_OP:
         switch (root->token.kind)
         {
-        case TK_AND:
-            E1.LTrue = code_gen_next_index(pstate);
-            E1.LFalse = pmid_code->LFalse;
-            E2.LTrue = pmid_code->LTrue;
-            E2.LFalse = pmid_code->LFalse;
-            E1.is_stmt=1;
-            E2.is_stmt=1;
-            str1 = generate_code(root->child[0],&E1, pstate);
-            printf("(%d)Label L%d\n", pstate->code_line++, E1.LTrue);
-            str2 = generate_code(root->child[1],&E2, pstate);
-            break;
-        case TK_OR:
-            E1.LTrue = pmid_code->LTrue;
-            E1.LFalse = code_gen_next_index(pstate);
-            E2.LTrue = pmid_code->LTrue;
-            E2.LFalse = pmid_code->LFalse;
-            str1=generate_code(root->child[0], &E1, pstate);
-            printf("(%d)Label L%d\n", pstate->code_line++, pmid_code->LFalse);
-            str2=generate_code(root->child[1], &E2, pstate);
-            break;
         case TK_NOT:
-            E1.LTrue = pmid_code->LFalse;
-            E1.LFalse = pmid_code->LTrue;
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
+            code.op = root->token.value;
+            gen_exp(root->child[0], &code, pstate, pcode_vec);
+            sprintf(t, "t%d", code_gen_next_tmp(pstate));
+            code.store = t;
             break;
-        case TK_GREATER:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            if(pmid_code->is_stmt==1){
-                printf("(%d)if %s > %s goto L%d\n",pstate->code_line++,str1,str2,pmid_code->LTrue);
-                printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LFalse);
-            }else{
-                printf("(%d)t%d := %s > %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            }
-            break;
-        case TK_LESS:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            if(pmid_code->is_stmt==1){
-                printf("(%d)if %s < %s goto L%d\n",pstate->code_line++,str1,str2,pmid_code->LTrue);
-                printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LFalse);
-            }else{   
-                printf("(%d)t%d := %s < %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            }
-            break;
+        case TK_AND:case TK_OR:
+        case TK_LESS:case TK_LEQ:
         case TK_EQU:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            if(pmid_code->is_stmt==1){
-                printf("(%d)if %s := %s goto L%d\n",pstate->code_line++,str1,str2,pmid_code->LTrue);
-                printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LFalse);
-            }else{
-                printf("(%d)t%d := %s =  %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            }
+        case TK_GREATER:case TK_GEQ:
+
+        case TK_ADD:case TK_SUB:
+        case TK_MUL:case TK_DIV:
+            code.op = root->token.value;
+            gen_exp(root->child[0], &code, pstate, pcode_vec);
+            gen_exp(root->child[1], &code, pstate, pcode_vec);
+            sprintf(t, "t%d", code_gen_next_tmp(pstate));
+            code.store = t;
             break;
-        case TK_GEQ:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            if(pmid_code->is_stmt==1){
-                printf("(%d)if %s >= %s goto L%d\n",pstate->code_line++,str1,str2,pmid_code->LTrue);
-                printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LFalse);
-            }else{
-                printf("(%d)t%d := %s >= %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            }
-            break;
-        case TK_LEQ:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            if(pmid_code->is_stmt==1){
-                printf("(%d)if %s <= %s goto L%d\n",pstate->code_line++,str1,str2,pmid_code->LTrue);
-                printf("(%d)goto L%d\n",pstate->code_line++,pmid_code->LFalse);
-            }else{
-                printf("(%d)t%d :=%s <= %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            }
-            break;
-        case TK_ADD:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            printf("(%d)t%d = %s + %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            break;
-        case TK_SUB:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            printf("(%d)t%d = %s - %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            break;
-        case TK_MUL:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            printf("(%d)t%d = %s * %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            break;
-        case TK_DIV:
-            str1=generate_code(root->child[0],&E1, pstate);
-            str2=generate_code(root->child[1],&E2, pstate);
-            printf("(%d)t%d = %s / %s\n",pstate->code_line++,pstate->tmp_index++,str1,str2);
-            break;
+
         default:
             assert(0);
         }
-        free(str1);
-        free(str2);
-        sprintf (str, "%s%d", "t", pstate->tmp_index);
+        // 回填结果存储位置
+        if (pfa_code->larg == ""){
+            pfa_code->larg = code.store;
+        }else if (pfa_code->rarg == ""){
+            pfa_code->rarg = code.store;
+        }else {
+            assert(0);
+        }
+        pcode_vec->push_back(code);
+        if (DEBUG)
+            printf("(%3s, %s, %s, %s)\n",
+                code.op.c_str(), code.larg.c_str(), code.rarg.c_str(),
+                code.store.c_str());
+
         break;
     default:
         assert(0);
     }
-    return str;
 }

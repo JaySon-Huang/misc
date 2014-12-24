@@ -53,8 +53,9 @@ int main(int argc, char const *argv[])
 
         struct code_gen_state_t code_gen_state;
         struct middle_code_t mid_code;
+        vector<struct middle_code_t> v;
         init_code_generator(&mid_code, &code_gen_state);
-        generate_code(tree, &mid_code, &code_gen_state);
+        generate_code(tree, &mid_code, &code_gen_state, &v);
 
         destroy_lexer(&lex_state, &token_pairs);
     }

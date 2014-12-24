@@ -167,7 +167,7 @@ struct syntax_tree_node_t {
 
 #define DELIMITER ';'
 #define DEBUG 1
-#define IGNORE_ERROR 1
+#define IGNORE_ERROR 0
 #define DETAIL 1
 
 #endif

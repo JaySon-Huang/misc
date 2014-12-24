@@ -234,5 +234,6 @@ token_pair_copy(
     const struct token_pair_t *src)
 {
     dest->kind = src->kind;
-    dest->value = src->value;
+    dest->value.assign(src->value);
+    //dest->value = src->value;
 }
