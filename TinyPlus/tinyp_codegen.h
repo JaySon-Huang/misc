@@ -7,12 +7,9 @@ struct middle_code_t {
     string op;
     string larg, rarg;
     string store;
+    int lineno;
 
-    int codebegin;
-    int LTrue,LFalse;
-
-    int LBegin,LNext;
-    int is_label;
+    int islabel;
 };
 
 struct code_gen_state_t{
@@ -31,5 +28,7 @@ generate_code(
     struct middle_code_t* pfa_code,
     struct code_gen_state_t *pstate,
     vector<struct middle_code_t> *pcode_vec);
+
+void code_print(struct middle_code_t *pcode);
 
 #endif

@@ -26,7 +26,7 @@ C := not x<100;
 {C := false and (1<2 or 2<3);}
 {布尔字面值+数值比较}
 {C := true and (x<100);}
-
+C := x<100 or x>200 and x=y;
 {表达式}
 A:=A+B*C+D-A-B/D+D;
 
@@ -38,4 +38,10 @@ if C>100 then
     x:= x+1;
 else
     x:= x*x;
+end;
+
+while C<1 do
+    x := x*x+2;
+    repeat A := A * 3 * B;
+    until A > 100;
 end;

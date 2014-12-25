@@ -24,4 +24,6 @@ new_exp_node(
 
 void printTree(struct syntax_tree_node_t* root);
 
+void destroyTree(struct syntax_tree_node_t* root);
+
 #endif

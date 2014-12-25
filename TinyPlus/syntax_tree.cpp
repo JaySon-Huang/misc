@@ -18,6 +18,20 @@ new_tree_node(
     return n;
 }
 
+void destroyTree(struct syntax_tree_node_t* root)
+{
+    if (root){
+        for (int i=0; i!= 3; ++i){
+            destroyTree(root->child[i]);
+        }
+        if (root->sibiling){
+            destroyTree(root->sibiling);
+        }
+        free (root);
+        root = NULL;
+    }
+}
+
 struct syntax_tree_node_t* 
 new_stmt_node(
     enum NodeType node_type)

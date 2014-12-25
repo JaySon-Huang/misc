@@ -163,6 +163,8 @@ struct syntax_tree_node_t {
     struct syntax_tree_node_t* child[3];// 子节点
     struct syntax_tree_node_t* sibiling;// 兄弟节点
     struct token_pair_t token; // 当节点为FACTOR类型时该成员才有效
+
+    int LTrue, LFalse;
 };
 
 #define DELIMITER ';'
