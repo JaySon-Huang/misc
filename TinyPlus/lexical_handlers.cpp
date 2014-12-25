@@ -232,7 +232,8 @@ int _handler_number_tmp(
     struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
-        || ch == '=' || ch == '<' || ch == '>' || ch == ')') {
+        || ch == '=' || ch == '<' || ch == '>' || ch == ')'
+        || ch == '*' || ch == '/' || ch == '-' || ch == '+'){
         if (DEBUG)
             printf("End Num tmp -> Done\n");
         unget_one_char(ch, plex_state);
@@ -272,7 +273,8 @@ int _handler_number(
     struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
-        || ch == '=' || ch == '<' || ch == '>' || ch == ')') {
+        || ch == '=' || ch == '<' || ch == '>' || ch == ')'
+        || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
             printf("End Num -> Done\n");
         unget_one_char(ch, plex_state);
@@ -304,7 +306,8 @@ int _handler_number_oct(
     struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
-        || ch == '=' || ch == '<' || ch == '>' || ch == ')') {
+        || ch == '=' || ch == '<' || ch == '>' || ch == ')'
+        || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
             printf("End OCT -> Done\n");
         unget_one_char(ch, plex_state);
@@ -336,7 +339,8 @@ int _handler_number_hex_tmp(
     struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
-        || ch == '=' || ch == '<' || ch == '>' || ch == ')') {
+        || ch == '=' || ch == '<' || ch == '>' || ch == ')'
+        || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
             printf("End HEX TMP -> Done\n");
         unget_one_char(ch, plex_state);
@@ -366,7 +370,8 @@ int _handler_number_hex(
     struct token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
-        || ch == '=' || ch == '<' || ch == '>' || ch == ')') {
+        || ch == '=' || ch == '<' || ch == '>' || ch == ')'
+        || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
             printf("End HEX -> Done\n");
         unget_one_char(ch, plex_state);
