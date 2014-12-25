@@ -158,7 +158,7 @@ static void gen_stmt(
                 printf("%s\n", label.store.c_str());
         }else{
             // 执行完if为真的情况,跳出if-else
-            code.op = "jump";
+            code.op = "jmp";
             code.larg = "";code.rarg = "";
             sprintf(t, "Label %2d", code_gen_next_index(pstate));
             code.store.assign(t);
@@ -194,7 +194,8 @@ static void gen_stmt(
         sprintf(t, "Label %2d", code_gen_next_index(pstate));
         label2.store.assign(t);
 
-        code.op = "jnz";
+        // 条件为假时,需要跳到while外
+        code.op = "jz";
         code.store.assign(label2.store);
         gen_rval(root->child[0], &code, pstate, pcode_vec);
         code.lineno = pstate->code_line++;
