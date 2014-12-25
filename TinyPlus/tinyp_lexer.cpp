@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -10,7 +10,7 @@ int
 init_lexer(
     const char* filename,
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs)
+    vector<token_pair_t> * ptoken_pairs)
 {
     plex_state->lineno = 1;
     plex_state->rowno = 0;
@@ -30,7 +30,7 @@ init_lexer(
 int 
 destroy_lexer(
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs)
+    vector<token_pair_t> * ptoken_pairs)
 {
     if (plex_state->errdetail) {
         free(plex_state->errdetail);
@@ -45,7 +45,7 @@ destroy_lexer(
 
 
 void 
-node_init(struct token_pair_t* pn)
+node_init(token_pair_t* pn)
 {
     pn->value.clear();
 }
@@ -87,11 +87,11 @@ action_report_error(struct lex_state_t* plex_state)
 int 
 parse(
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs)
+    vector<token_pair_t> * ptoken_pairs)
 {
     int ch;
     int action = ACT_IDLE;
-    struct token_pair_t token_pair;
+    token_pair_t token_pair;
 
     while (1){
         ch = get_next_char(plex_state);

@@ -1,4 +1,4 @@
-#include "tinyp_structs.h"
+﻿#include "tinyp_structs.h"
 #include "symboltable.h"
 #include <string>
 using std::string;
@@ -7,7 +7,7 @@ using std::set;
 
 void
 SymbolTable::update(
-    const struct token_pair_t *token,
+    const token_pair_t *token,
     enum ObjectType obj_type,
     enum ValueType val_type)
 {

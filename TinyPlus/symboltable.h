@@ -1,4 +1,4 @@
-#ifndef __TINYP_SYMBOLTABLE__
+﻿#ifndef __TINYP_SYMBOLTABLE__
 #define __TINYP_SYMBOLTABLE__ 
 
 #include "tinyp_structs.h"
@@ -29,7 +29,7 @@ public:
      */
     void
     update(
-        const struct token_pair_t *token,
+        const token_pair_t *token,
         enum ObjectType obj_type,
         enum ValueType val_type);
 

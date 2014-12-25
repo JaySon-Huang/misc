@@ -1,4 +1,4 @@
-#ifndef __TINYP_LEXER_H__
+﻿#ifndef __TINYP_LEXER_H__
 #define __TINYP_LEXER_H__ 
 
 
@@ -26,7 +26,7 @@ int
 init_lexer(
     const char* filename,
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs);
+    vector<token_pair_t> * ptoken_pairs);
 
 /**
   * 解析结束后释放资源
@@ -38,7 +38,7 @@ init_lexer(
 int 
 destroy_lexer(
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs);
+    vector<token_pair_t> * ptoken_pairs);
 
 /**
   * 开始解析
@@ -49,7 +49,7 @@ destroy_lexer(
   */
 int parse(
     struct lex_state_t* plex_state,
-    vector<struct token_pair_t> * ptoken_pairs);
+    vector<token_pair_t> * ptoken_pairs);
 
 /**
   * 从文件中读取下一个有效的char

@@ -1,4 +1,4 @@
-#ifndef __TINYP_PARSER_H__
+﻿#ifndef __TINYP_PARSER_H__
 #define __TINYP_PARSER_H__ 
 // 语法分析
 
@@ -29,7 +29,7 @@ token_match_one(
 void 
 init_parser(
     struct parse_state_t *pstate,
-    vector<struct token_pair_t> *ptoken_pairs);
+    vector<token_pair_t> *ptoken_pairs);
 
 struct syntax_tree_node_t* 
 parse_program(struct parse_state_t *pstate);

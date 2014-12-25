@@ -1,7 +1,7 @@
-#include "tinyp_structs.h"
+﻿#include "tinyp_structs.h"
 
 void 
-token_pair_print(struct token_pair_t* p)
+token_pair_print(token_pair_t* p)
 {
     printf("(");
 if (DETAIL){
@@ -184,7 +184,7 @@ if (DETAIL){
  *   TK_UNTIL, TK_READ, TK_WRITE,
  */
 void 
-token_pair_kind_key(struct token_pair_t* p)
+token_pair_kind_key(token_pair_t* p)
 {
     if (p->value == "true"){
         p->kind = TK_TRUE;
@@ -230,8 +230,8 @@ token_pair_kind_key(struct token_pair_t* p)
 
 void
 token_pair_copy(
-    struct token_pair_t *dest,
-    const struct token_pair_t *src)
+    token_pair_t *dest,
+    const token_pair_t *src)
 {
     dest->kind = src->kind;
     dest->value.assign(src->value);

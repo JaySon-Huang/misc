@@ -1,4 +1,4 @@
-#ifndef __TINYP_SYNTAX_TREE_H__
+﻿#ifndef __TINYP_SYNTAX_TREE_H__
 #define __TINYP_SYNTAX_TREE_H__ 
 
 #include "tinyp_structs.h"

@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -11,7 +11,7 @@
 int _handler_start(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (isspace(ch) || ch == '\n' || ch == '\r') {
         plex_state->cur_state = STA_START;
@@ -21,7 +21,7 @@ int _handler_start(
             printf("End Start -> ID\n");
         ptoken_pair->value += ch;
         plex_state->cur_state = STA_ID;
-    }else if (isnumber(ch)) {
+    }else if (isdigit(ch)) {
         // 数字
         if (DEBUG)
             printf("End Start -> Num (Num tmp for 0)\n");
@@ -77,7 +77,7 @@ int _handler_start(
 int _handler_assign(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
@@ -106,7 +106,7 @@ int _handler_assign(
 int _handler_comment(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF) {
         if (DEBUG)
@@ -131,12 +131,12 @@ int _handler_comment(
 int _handler_done(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     int action = ACT_IDLE;
     plex_state->cur_state = STA_START;
 
-    if (isblank(ch) ||  ch == '\n' || ch == '\r'){
+    if (isspace(ch) ||  ch == '\n' || ch == '\r'){
         if (DEBUG)
             printf("End Done -> Start\n");
         return ACT_IDLE;
@@ -229,9 +229,9 @@ int _handler_done(
 int _handler_number_tmp(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+	if (ch == EOF || ch == DELIMITER || isspace(ch) || ch == '\n'
         || ch == '=' || ch == '<' || ch == '>' || ch == ')'
         || ch == '*' || ch == '/' || ch == '-' || ch == '+'){
         if (DEBUG)
@@ -240,7 +240,7 @@ int _handler_number_tmp(
         plex_state->cur_state = STA_DONE;
         ptoken_pair->kind = TK_NUM;
         return ACT_PUSH_NODE;
-    }else if (isnumber(ch)) {
+    }else if (isdigit(ch)) {
         if (DEBUG)
             printf("End Num tmp -> Num Oct\n");
         unget_one_char(ch, plex_state);
@@ -270,9 +270,9 @@ int _handler_number_tmp(
 int _handler_number(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+    if (ch == EOF || ch == DELIMITER || isspace(ch) || ch == '\n'
         || ch == '=' || ch == '<' || ch == '>' || ch == ')'
         || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
@@ -303,9 +303,9 @@ int _handler_number(
 int _handler_number_oct(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+    if (ch == EOF || ch == DELIMITER || isspace(ch) || ch == '\n'
         || ch == '=' || ch == '<' || ch == '>' || ch == ')'
         || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
@@ -336,9 +336,9 @@ int _handler_number_oct(
 int _handler_number_hex_tmp(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+    if (ch == EOF || ch == DELIMITER || isspace(ch) || ch == '\n'
         || ch == '=' || ch == '<' || ch == '>' || ch == ')'
         || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
@@ -351,7 +351,7 @@ int _handler_number_hex_tmp(
         plex_state->cur_state = STA_ERROR;
         plex_state->err_type |= ERROR_ILLGAL_CHAR|ERROR_HEX;
         return ACT_REPORT_ERROR;
-    }else if (!ishexnumber(ch)){
+    }else if (!isxdigit(ch)){
         plex_state->cur_state = STA_ERROR;
         plex_state->err_type |= ERROR_HEX;
         return ACT_REPORT_ERROR;
@@ -367,9 +367,9 @@ int _handler_number_hex_tmp(
 int _handler_number_hex(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
-    if (ch == EOF || ch == DELIMITER || isblank(ch) || ch == '\n'
+    if (ch == EOF || ch == DELIMITER || isspace(ch) || ch == '\n'
         || ch == '=' || ch == '<' || ch == '>' || ch == ')'
         || ch == '*' || ch == '/' || ch == '-' || ch == '+') {
         if (DEBUG)
@@ -382,7 +382,7 @@ int _handler_number_hex(
         plex_state->cur_state = STA_ERROR;
         plex_state->err_type |= ERROR_ILLGAL_CHAR|ERROR_HEX;
         return ACT_REPORT_ERROR;
-    }else if (!ishexnumber(ch)){
+    }else if (!isxdigit(ch)){
         plex_state->cur_state = STA_ERROR;
         plex_state->err_type |= ERROR_HEX;
         return ACT_REPORT_ERROR;
@@ -395,7 +395,7 @@ int _handler_number_hex(
 int _handler_greater(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch != '=') {
         if (DEBUG)
@@ -418,7 +418,7 @@ int _handler_greater(
 int _handler_less(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch != '=') {
         if (DEBUG)
@@ -441,7 +441,7 @@ int _handler_less(
 int _handler_id(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
@@ -467,7 +467,7 @@ int _handler_id(
 int _handler_string(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == '\n') {
         if (DEBUG)
@@ -492,7 +492,7 @@ int _handler_string(
 int _handler_tran(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         if (DEBUG)
@@ -526,7 +526,7 @@ int _handler_tran(
 int _handler_error(
     int ch, 
     struct lex_state_t* plex_state,
-    struct token_pair_t* ptoken_pair)
+    token_pair_t* ptoken_pair)
 {
     if (ch == EOF || ch == DELIMITER) {
         unget_one_char(ch, plex_state);

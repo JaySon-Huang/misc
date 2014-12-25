@@ -1,10 +1,10 @@
-#include "tinyp_structs.h"
+﻿#include "tinyp_structs.h"
 #include "tinyp_parser.h"
 #include "syntax_tree.h"
 
 #include <assert.h>
 
-int
+int 
 token_in(
     const set<enum Kind> *pset,
     const struct parse_state_t *pstate)
@@ -53,7 +53,7 @@ parse_state_next_token(struct parse_state_t *pstate)
 void
 init_parser(
             struct parse_state_t *pstate,
-            vector<struct token_pair_t> *ptoken_pairs)
+            vector<token_pair_t> *ptoken_pairs)
 {
     pstate->ptoken_pairs = ptoken_pairs;
     pstate->cur_token = ptoken_pairs->at(0);
@@ -65,8 +65,6 @@ init_parser(
 struct syntax_tree_node_t*
 parse_program(struct parse_state_t *pstate)
 {
-    
-    
     SymbolTable symbol_table;
     parse_declarations(&symbol_table, pstate);// 分析变量的声明
     // 分析语句列表，返回值就是整个程序的语法树（不包括声明部分）
@@ -90,7 +88,7 @@ parse_declarations(
            || pstate->cur_token.kind == TK_BOOL
            || pstate->cur_token.kind == TK_STR )
     {
-        struct token_pair_t type,id;
+        token_pair_t type,id;
         token_pair_copy(&type, &pstate->cur_token);
         
         if (DEBUG)

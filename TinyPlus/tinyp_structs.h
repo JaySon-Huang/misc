@@ -1,4 +1,4 @@
-#ifndef __TINY_STRUCTS_H__
+﻿#ifndef __TINY_STRUCTS_H__
 #define __TINY_STRUCTS_H__ 
 
 // FILE* 定义
@@ -79,17 +79,18 @@ enum Action {
     ACT_COMMENT,// 解析到注释
 };
 // 保存解析出来的token串的链表结点
-struct token_pair_t{
+class token_pair_t{
+public:
     enum Kind kind;// token 类型
     string value;// token 值
 };
 
 void 
-token_pair_print(struct token_pair_t* ptoken_pair);
+token_pair_print(token_pair_t* ptoken_pair);
 void 
-token_pair_kind_key(struct token_pair_t* ptoken_pair);
+token_pair_kind_key(token_pair_t* ptoken_pair);
 void
-token_pair_copy(struct token_pair_t *dest, const struct token_pair_t *src);
+token_pair_copy(token_pair_t *dest, const token_pair_t *src);
 
 // 保存当前解析状态,出错原因
 struct lex_state_t{
@@ -101,8 +102,8 @@ struct lex_state_t{
     enum State cur_state;
 };
 struct parse_state_t{
-    struct token_pair_t cur_token;
-    vector<struct token_pair_t> *ptoken_pairs;
+    token_pair_t cur_token;
+    vector<token_pair_t> *ptoken_pairs;
     int token_pos;
 };
 enum ObjectType {
@@ -149,7 +150,7 @@ enum NodeType {
 };
 
 struct symbol_t {
-    struct token_pair_t token; // token
+    token_pair_t token; // token
     enum ObjectType obj_type; // 符号对象类型
     enum ValueType val_type; //值类型
     // int addr;  // 地址
@@ -162,7 +163,7 @@ struct syntax_tree_node_t {
     enum ValueType val_type;// 节点值类型
     struct syntax_tree_node_t* child[3];// 子节点
     struct syntax_tree_node_t* sibiling;// 兄弟节点
-    struct token_pair_t token; // 当节点为FACTOR类型时该成员才有效
+    token_pair_t token; // 当节点为FACTOR类型时该成员才有效
 
     int LTrue, LFalse;
 };

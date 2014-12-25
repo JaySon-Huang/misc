@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -15,7 +15,7 @@ using std::vector;
 int main(int argc, char const *argv[])
 {
     struct lex_state_t lex_state;
-    vector<struct token_pair_t> token_pairs;
+    vector<token_pair_t> token_pairs;
 
     syntax_tree_node_t *tree;
     parse_state_t parse_state;
