@@ -67,6 +67,27 @@ parse_program(struct parse_state_t *pstate)
 {
     SymbolTable symbol_table;
     parse_declarations(&symbol_table, pstate);// 分析变量的声明
+    printf("Symbol Table:\n");
+    for (std::set<struct symbol_t>::iterator iter = symbol_table.m_table.begin();
+        iter != symbol_table.m_table.end();
+        ++iter){
+        printf("ValType: ");
+        switch (iter->val_type)
+        {
+        case VT_INT:
+            printf("Int\t");
+            break;
+        case VT_BOOL:
+            printf("Bool\t");
+            break;
+        case VT_STRING:
+            printf("String\t");
+            break;
+        }
+        printf("Name: %s\n", iter->token.value.c_str());
+    }
+    printf("\n");
+    
     // 分析语句列表，返回值就是整个程序的语法树（不包括声明部分）
     return parse_stmt_sequence(pstate);
 }

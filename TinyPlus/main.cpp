@@ -49,6 +49,8 @@ int main(int argc, char const *argv[])
         printf("Parsing Tokens...\n");
         init_parser(&parse_state, &token_pairs);
         tree = parse_program(&parse_state);
+        //printSymbols();
+        printf("Syntax Tree:\n");
         printTree(tree);
 
         printf("Generating code...\n");

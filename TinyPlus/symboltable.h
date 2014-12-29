@@ -15,7 +15,7 @@ public:
 };
 
 class SymbolTable{
-private:
+public:
     set<struct symbol_t, SymbolLess> m_table;
 public:
     /*
