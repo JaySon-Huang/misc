@@ -29,21 +29,3 @@ PyObject *hello3(PyObject *self, PyObject *args)
     }
     return list;
 }
-
-PyObject *hello4(PyObject *self, PyObject *args)
-{
-    PyObject *dict = PyDict_New();
-
-    PyObject *list = PyList_New(0);
-    PyObject *item = NULL;
-    for (int i=0; i!=5; ++i){
-        PyObject *sublist = PyList_New(0);
-        for (int j=0; j!=64; ++j){
-            PyList_Append(sublist, Py_BuildValue("i", i*100+j));
-        }
-        PyList_Append(list, sublist);
-    }
-    PyDict_SetItem(dict, Py_BuildValue("s", "Y"), list);
-
-    return dict;
-}

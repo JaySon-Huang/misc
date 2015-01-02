@@ -17,8 +17,3 @@ hello3func.restype = ctypes.py_object
 ret = hello3func()
 for l in ret:
     print l
-
-hello4func = so.hello4
-hello4func.restype = ctypes.py_object
-ret = hello4func()
-print ret
