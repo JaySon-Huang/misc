@@ -14,6 +14,7 @@ using std::vector;
 
 int main(int argc, char const *argv[])
 {
+    int ret;
     struct lex_state_t lex_state;
     vector<token_pair_t> token_pairs;
 
@@ -30,6 +31,7 @@ int main(int argc, char const *argv[])
     const char* sample[]={
         "sample/example2.tinyp",
         // "sample/example.tinyp",
+        // "sample/experiment1_test1_in.txt",
         // "sample/experiment1_test2_in.txt",
         "sample/experiment2_test1_in.txt",
         "sample/experiment2_test2_in.txt",
@@ -38,13 +40,19 @@ int main(int argc, char const *argv[])
         printf("Lexical analyze file %s\n", sample[i]);
         init_lexer(sample[i], &lex_state, &token_pairs);
 
-        parse(&lex_state, &token_pairs);
+        ret = lexical(&lex_state, &token_pairs);
+        if (ret == 1){
+            fprintf(stderr, "Error happned in lexical analyze.Exit.\n");
+            exit(1);
+        }
         printf("=======\n");
         printf("Tokens:\n");
         for (int i=0; i != token_pairs.size(); ++i){
             token_pair_print(&token_pairs[i]);
+            if (i%5==4) printf("\n");
+            else printf("\t");
         }
-        printf("=======\n\n");
+        printf("\n=======\n\n");
 
         printf("Parsing Tokens...\n");
         init_parser(&parse_state, &token_pairs);

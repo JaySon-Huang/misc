@@ -47,7 +47,7 @@ destroy_lexer(
   * @ptoken_pairs
   *    解析结果vector容器
   */
-int parse(
+int lexical(
     struct lex_state_t* plex_state,
     vector<token_pair_t> * ptoken_pairs);
 

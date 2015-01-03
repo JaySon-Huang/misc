@@ -18,46 +18,46 @@ enum Kind {
     TK_ELSE, TK_END, TK_REPEAT,
     TK_UNTIL, TK_READ, TK_WRITE,
     // 操作符
-    TK_GREATER, // >
-    TK_LEQ, // <=
-    TK_GEQ, // >=
-    TK_COMMA, // ,
-    TK_QUOTE, // '
+    TK_GREATER,  // >
+    TK_LEQ,      // <=
+    TK_GEQ,      // >=
+    TK_COMMA,    // ,
+    TK_QUOTE,    // '
     TK_SEMICOLON, // ;
-    TK_ASSIGN,// :=
-    TK_ADD, // +
-    TK_SUB, // -
-    TK_MUL, // *
-    TK_DIV, // /
-    TK_LP, // (
-    TK_RP, // )
-    TK_LESS, // <
-    TK_EQU, // =
+    TK_ASSIGN,   // :=
+    TK_ADD,      // +
+    TK_SUB,      // -
+    TK_MUL,      // *
+    TK_DIV,      // /
+    TK_LP,       // (
+    TK_RP,       // )
+    TK_LESS,     // <
+    TK_EQU,      // =
 
     TK_COMMENT, //注释
     TK_ENDFILE, // 文件尾
-    TK_STRING, // 字符串
-    TK_ID, // 标识符
-    TK_NUM, // 十进制数
-    TK_OCTNUM, // 八进制数
-    TK_HEXNUM, // 十六进制数
+    TK_STRING,  // 字符串
+    TK_ID,      // 标识符
+    TK_NUM,     // 十进制数
+    TK_OCTNUM,  // 八进制数
+    TK_HEXNUM,  // 十六进制数
 };
 enum State {
-    STA_START, // 空白状态
-    STA_COMMENT, // 解析注释
+    STA_START,      // 空白状态
+    STA_COMMENT,    // 解析注释
     STA_NUMBER_TMP, //
-    STA_NUMBER, // 解析数字
-    STA_OCTNUMBER, // 解析8进制数字
+    STA_NUMBER,     // 解析数字
+    STA_OCTNUMBER,  // 解析8进制数字
     STA_HEXNUMBER_TMP, //
-    STA_HEXNUMBER, // 解析16进制数字
-    STA_ID, // 解析标识符
-    STA_ASSIGN, // 解析赋值
-    STA_LESS, // 
-    STA_GREATER, //
-    STA_STRING, // 解析字符串
-    STA_TRAN, // 转义字符
-    STA_DONE, // 
-    STA_ERROR, // 错误
+    STA_HEXNUMBER,  // 解析16进制数字
+    STA_ID,         // 解析标识符
+    STA_ASSIGN,     // 解析赋值
+    STA_LESS,       // < 或者 <=
+    STA_GREATER,    // > 或者 >=
+    STA_STRING,     // 解析字符串
+    STA_TRAN,       // 转义字符
+    STA_DONE,       // 
+    STA_ERROR,      // 错误
 };
 enum Error {
     ERROR_COMMENT_UNEXPECTED_EOF=0x100,
@@ -78,11 +78,12 @@ enum Action {
     ACT_REPORT_ERROR, // 报告错误
     ACT_COMMENT,// 解析到注释
 };
-// 保存解析出来的token串的链表结点
+
+// 保存解析出来的token的'结构体'
 class token_pair_t{
 public:
     enum Kind kind;// token 类型
-    string value;// token 值
+    string value;  // token 值
 };
 
 void 
@@ -94,13 +95,14 @@ token_pair_copy(token_pair_t *dest, const token_pair_t *src);
 
 // 保存当前解析状态,出错原因
 struct lex_state_t{
-    FILE* fp;
-    int lineno;// 行号
-    int rowno;// 列号
-    char* errdetail;// 出错时保存详细信息
+    FILE* fp;    // 当前做词法分析的文件描述符
+    int lineno;  // 行号
+    int rowno;   // 列号
     int err_type;//错误类型
     enum State cur_state;
 };
+
+// 保存当前语法解析状态
 struct parse_state_t{
     token_pair_t cur_token;
     vector<token_pair_t> *ptoken_pairs;
@@ -113,7 +115,7 @@ enum ObjectType {
 };
 
 enum ValueType {
-    VT_INT,    // 整形
+    VT_INT,    // 整型
     VT_BOOL,   // 布尔类型
     VT_STRING, // 字符串类型
 };

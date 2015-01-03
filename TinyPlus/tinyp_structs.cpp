@@ -38,7 +38,7 @@ if (DETAIL){
         printf("END  ");
         break;
     case TK_ENDFILE:
-        printf("ENDFILE");
+        printf("EOF  ");
         break;
     case TK_EQU:
         printf("EQU  ");
@@ -50,10 +50,10 @@ if (DETAIL){
         printf("GEQ  ");
         break;
     case TK_GREATER:
-        printf("GREATER");
+        printf("GT   ");
         break;
     case TK_HEXNUM:
-        printf("HEXNUM");
+        printf("HNUM ");
         break;
     case TK_ID:
         printf("ID   ");
@@ -83,7 +83,7 @@ if (DETAIL){
         printf("NUM  ");
         break;
     case TK_OCTNUM:
-        printf("OCTNUM");
+        printf("ONUM ");
         break;
     case TK_OR:
         printf("OR  ");
@@ -101,7 +101,7 @@ if (DETAIL){
         printf("RP   ");
         break;
     case TK_SEMICOLON:
-        printf("SEMICOLON");
+        printf("SEMICOL");
         break;
     case TK_STR:
         printf("STR  ");
@@ -171,7 +171,7 @@ if (DETAIL){
         break;
     }
 }
-    printf(", %s)", p->value.c_str());
+    printf(", %4s)", p->value.c_str());
 }
 
 /**

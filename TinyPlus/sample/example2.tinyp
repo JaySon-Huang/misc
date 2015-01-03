@@ -1,19 +1,19 @@
-int A,B;
+int A,B,X,Y;
 bool C;
 string D;
 {字符串赋值}
-{D:= 'scanner';}
+D:= 'scanner';
 
 {字面布尔值赋值}
-{C := true;}
-{C := false;}
+C := true;
+C := false;
 {比较布尔值}
-{C := x<200;}
-{C := 1<2;}
-{C := 1<=2;}
-{C := 1=2;}
-{C := 1>2;}
-{C := 1>=2;}
+C := x<200;
+C := 1<2;
+C := 1<=2;
+C := 1=2;
+C := 1>2;
+C := 1>=2;
 {比较算符+布尔字面值}
 C := not true;
 C := true and false;
@@ -23,25 +23,25 @@ C := 1<2 or 1<3;
 C := 2>2 and 2<3;
 C := not x<100;
 {括号}
-{C := false and (1<2 or 2<3);}
+C := false and (1<2 or 2<3);
 {布尔字面值+数值比较}
-{C := true and (x<100);}
+C := true and (x<100);
 C := x<100 or x>200 and x=y;
 {表达式}
-A:=A+B*C+D-A-B/D+D;
-
+A:=A+B*X+Y-A-B/Y+Y;
+{if语句}
 if C then
-    x := x+1;
+    X := X+1;
 end;
-
+{if-else语句}
 if C>100 then
-    x:= x+1;
+    X:= X+1;
 else
-    x:= x*x;
+    X:= X*X;
 end;
-
+{while语句嵌套repeat语句}
 while C<1 do
-    x := x*x+2;
+    X := X*X+2;
     repeat A := A * 3 * B;
     until A > 100;
 end;

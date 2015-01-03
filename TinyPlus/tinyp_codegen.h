@@ -13,9 +13,9 @@ struct middle_code_t {
 };
 
 struct code_gen_state_t{
-    int label_index;
-    int tmp_index;
-    int code_line;
+    int label_index; // 存储下一个分配的label下标
+    int tmp_index;   // 存储下一个临时变量下标
+    int code_line;   // 存储代码行数
 };
 
 void init_code_generator(

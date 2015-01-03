@@ -75,10 +75,10 @@ parse_program(struct parse_state_t *pstate)
         switch (iter->val_type)
         {
         case VT_INT:
-            printf("Int\t");
+            printf("Int   \t");
             break;
         case VT_BOOL:
-            printf("Bool\t");
+            printf("Bool  \t");
             break;
         case VT_STRING:
             printf("String\t");

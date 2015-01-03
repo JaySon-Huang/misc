@@ -14,13 +14,10 @@ init_lexer(
 {
     plex_state->lineno = 1;
     plex_state->rowno = 0;
-    plex_state->errdetail = NULL;
     plex_state->cur_state = STA_START;
 
     plex_state->fp = fopen(filename, "rb");
     if (plex_state->fp == NULL){
-        plex_state->errdetail = (char *)malloc(255*sizeof(char));
-        sprintf(plex_state->errdetail, "Open file %s failed!", filename);
         return -1;
     }
 
@@ -32,9 +29,6 @@ destroy_lexer(
     struct lex_state_t* plex_state,
     vector<token_pair_t> * ptoken_pairs)
 {
-    if (plex_state->errdetail) {
-        free(plex_state->errdetail);
-    }
     if (plex_state->fp != NULL) {
         fclose(plex_state->fp);
     }
@@ -85,7 +79,7 @@ action_report_error(struct lex_state_t* plex_state)
 }
 
 int 
-parse(
+lexical(
     struct lex_state_t* plex_state,
     vector<token_pair_t> * ptoken_pairs)
 {

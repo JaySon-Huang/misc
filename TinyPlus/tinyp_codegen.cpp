@@ -337,12 +337,14 @@ static void gen_rval(
     case EXP_OP:
         switch (root->token.kind)
         {
+        // 一元操作符
         case TK_NOT:
             code.op = root->token.value;
             gen_rval(root->child[0], &code, pstate, pcode_vec);
             sprintf(t, "t%d", code_gen_next_tmp(pstate));
             code.store = t;
             break;
+        // 二元操作符
         case TK_AND:case TK_OR:
         case TK_LESS:case TK_LEQ:
         case TK_EQU:
