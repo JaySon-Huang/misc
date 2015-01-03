@@ -8,16 +8,16 @@ if (DETAIL){
     switch (p->kind)
     {
     case TK_ADD:
-        printf("ADD");
+        printf("ADD  ");
         break;
     case TK_AND:
-        printf("AND");
+        printf("AND  ");
         break;
     case TK_ASSIGN:
         printf("ASSIGN");
         break;
     case TK_BOOL:
-        printf("BOOL");
+        printf("BOOL ");
         break;
     case TK_COMMA:
         printf("COMMA");
@@ -26,28 +26,28 @@ if (DETAIL){
         printf("COMMENT");
         break;
     case TK_DIV:
-        printf("DIV");
+        printf("DIV  ");
         break;
     case TK_DO:
-        printf("DO");
+        printf("DO   ");
         break;
     case TK_ELSE:
-        printf("ELSE");
+        printf("ELSE ");
         break;
     case TK_END:
-        printf("END");
+        printf("END  ");
         break;
     case TK_ENDFILE:
         printf("ENDFILE");
         break;
     case TK_EQU:
-        printf("EQU");
+        printf("EQU  ");
         break;
     case TK_FALSE:
         printf("FALSE");
         break;
     case TK_GEQ:
-        printf("GEQ");
+        printf("GEQ  ");
         break;
     case TK_GREATER:
         printf("GREATER");
@@ -56,67 +56,67 @@ if (DETAIL){
         printf("HEXNUM");
         break;
     case TK_ID:
-        printf("ID");
+        printf("ID   ");
         break;
     case TK_IF:
-        printf("IF");
+        printf("IF   ");
         break;
     case TK_INT:
-        printf("INT");
+        printf("INT  ");
         break;
     case TK_LEQ:
-        printf("LEQ");
+        printf("LEQ  ");
         break;
     case TK_LESS:
-        printf("LESS");
+        printf("LESS ");
         break;
     case TK_LP:
-        printf("LP");
+        printf("LP   ");
         break;
     case TK_MUL:
-        printf("MUL");
+        printf("MUL  ");
         break;
     case TK_NOT:
-        printf("NOT");
+        printf("NOT  ");
         break;
     case TK_NUM:
-        printf("NOT");
+        printf("NUM  ");
         break;
     case TK_OCTNUM:
         printf("OCTNUM");
         break;
     case TK_OR:
-        printf("OR");
+        printf("OR  ");
         break;
     case TK_QUOTE:
         printf("QUOTE");
         break;
     case TK_READ:
-        printf("READ");
+        printf("READ ");
         break;
     case TK_REPEAT:
         printf("REPEAT");
         break;
     case TK_RP:
-        printf("RP");
+        printf("RP   ");
         break;
     case TK_SEMICOLON:
         printf("SEMICOLON");
         break;
     case TK_STR:
-        printf("STR");
+        printf("STR  ");
         break;
     case TK_STRING:
         printf("STRING");
         break;
     case TK_SUB:
-        printf("SUB");
+        printf("SUB  ");
         break;
     case TK_THEN:
-        printf("THEN");
+        printf("THEN ");
         break;
     case TK_TRUE:
-        printf("TRUE");
+        printf("TRUE ");
         break;
     case TK_UNTIL:
         printf("UNTIL");
@@ -171,7 +171,7 @@ if (DETAIL){
         break;
     }
 }
-    printf(", %s)\n", p->value.c_str());
+    printf(", %s)", p->value.c_str());
 }
 
 /**
@@ -235,5 +235,4 @@ token_pair_copy(
 {
     dest->kind = src->kind;
     dest->value.assign(src->value);
-    //dest->value = src->value;
 }
