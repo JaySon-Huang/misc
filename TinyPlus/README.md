@@ -5,6 +5,7 @@
 
 ### 语法分析
 采用递归下降分析的方法(符合LL(1)文法)
+表达式的解析用自底向上(算符优先文法)
 ```
 program -> declarations stmt-sequence
 
