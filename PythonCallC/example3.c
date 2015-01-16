@@ -5,7 +5,7 @@
 
 #include <assert.h>
 
-#define LIST_SIZE 300
+#define LIST_SIZE 1000
 
 PyObject *hello4(PyObject *self, PyObject *args)
 {
@@ -25,11 +25,9 @@ PyObject *hello4(PyObject *self, PyObject *args)
         for (int j=0; j!=64; ++j){
             PyObject *val = Py_BuildValue("i", i*100+j);
             PyList_SetItem(sublist, j, val);
-            // Py_DECREF(val);
         }
         printf("%d\n", cnt++);
         PyList_SetItem(list, i, sublist);
-        // Py_DECREF(sublist);
 
         printf("sublist added to list\n");
     }

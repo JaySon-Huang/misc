@@ -62,7 +62,7 @@ PyObject *getdct(PyObject *self, PyObject *args)
         fprintf(stderr, "Can't open %s\n", filename);
         return NULL;
     }else {
-        printf("file: %s opened.\n", filename);
+        // printf("file: %s opened.\n", filename);
     }
 
     struct jpeg_decompress_struct cinfo;
@@ -72,15 +72,17 @@ PyObject *getdct(PyObject *self, PyObject *args)
     if (setjmp(jerr.setjmp_buffer)) {
         jpeg_destroy_decompress(&cinfo);
         fclose(infile);
-        return NULL;
+
+        Py_INCREF(Py_None);
+        return Py_None;
     }
 
     jpeg_create_decompress(&cinfo);
     jpeg_stdio_src(&cinfo, infile);
     (void) jpeg_read_header(&cinfo, TRUE);
 
-    printf("Width:%4d, Height:%4d\n", cinfo.image_width, cinfo.image_height );
-    printf("Components:%2d\n", cinfo.num_components);
+    // printf("Width:%4d, Height:%4d\n", cinfo.image_width, cinfo.image_height );
+    // printf("Components:%2d\n", cinfo.num_components);
 
     PyObject *dict = PyDict_New();
     jvirt_barray_ptr *coef_arrays = jpeg_read_coefficients(&cinfo);
@@ -92,7 +94,7 @@ PyObject *getdct(PyObject *self, PyObject *args)
         
         int blocknum = (com_coef_array->rows_in_mem)*(com_coef_array->blocksperrow);
         component = PyList_New(blocknum);
-        printf("Ready for one component.\n");
+        // printf("Ready for one component.\n");
 
         for (int row=0; row!=com_coef_array->rows_in_mem; ++row) {
             for (int col=0; col!=com_coef_array->blocksperrow; ++col) {
@@ -103,11 +105,9 @@ PyObject *getdct(PyObject *self, PyObject *args)
                     PyList_SetItem(coef, i, Py_BuildValue("i", pcoef[i]));
                 }
                 PyList_SetItem(component, row*(com_coef_array->blocksperrow) + col, coef);
-                // PyList_Append(component, coef);
-                printf("len(component) : %d\n", row*(com_coef_array->blocksperrow) + col);
             }
         }
-        printf("Read one component.\n");
+        // printf("Read one component.\n");
 
         // 添加到返回的字典中
         switch (cinfo.jpeg_color_space)
@@ -156,7 +156,7 @@ PyObject *getdct(PyObject *self, PyObject *args)
             assert(0);
             break;
         }
-        printf("One Components Added.\n");
+        // printf("One Components Added.\n");
     }
 
     return dict;
