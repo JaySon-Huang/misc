@@ -29,3 +29,8 @@ PyObject *hello3(PyObject *self, PyObject *args)
     }
     return list;
 }
+
+void hello4(int jj, char *str)
+{
+    printf("get %d,%s from C\n", jj, str);
+}
