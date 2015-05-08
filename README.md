@@ -1,5 +1,7 @@
-misc(杂项) -- 各种作为试验API性质/课程实验的代码
+misc(杂项)
 ====
+Description: 各种作为试验API性质/课程实验的代码
+* * *
 
 ## Crypto
 S-DES实现、简单的RSA实现
