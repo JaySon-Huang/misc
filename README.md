@@ -40,3 +40,14 @@ Python 和 C 之间交互的demo程序
 * 生成RSA密钥对, 保存公钥私钥
 * 对文件进行Hash(这里使用MD5), 并使用生成的私钥对其进行签名, 保存签名到文件中
 * 使用公钥对生成的数字签名进行验证
+
+* * *
+
+## pyreadelf
+
+使用Python解析`elf`文件, 参考`binutils`中的`readelf.c`
+造轮子造到一半发现好繁琐……然后又去找轮子了，找到了[eliben/pyelftools @ github](https://github.com/eliben/pyelftools)
+
+refs:
+* [GNU Binutils](http://www.sourceware.org/binutils/) 
+* [可执行文件（ELF）格式的理解](http://www.cnblogs.com/xmphoenix/archive/2011/10/23/2221879.html)
