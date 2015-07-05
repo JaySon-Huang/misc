@@ -51,3 +51,11 @@ Python 和 C 之间交互的demo程序
 refs:
 * [GNU Binutils](http://www.sourceware.org/binutils/) 
 * [可执行文件（ELF）格式的理解](http://www.cnblogs.com/xmphoenix/archive/2011/10/23/2221879.html)
+
+* * *
+
+## RabinKarpMatcher
+使用`Rabin-Karp算法`对关键词进行匹配, 使用 Rolling Hash 来减少 hash 值的重复计算量, 能以较少的常数级别O(n)查找出短句是否含有关键词.
+
+### 性能比较
+`待测试`
