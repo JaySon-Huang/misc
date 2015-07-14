@@ -11,6 +11,8 @@ using std::vector;
 using std::map;
 using std::string;
 
+#include "CBaseMatcher.h"
+
 class CWordInformation
 {
 public:
@@ -28,32 +30,18 @@ public:
         size_t index_begin, size_t length);
 };
 
-class CRabinKarpMatcher
+class CRabinKarpMatcher : public CBaseMatcher
 {
 private:
     vector<CWordInformation> m_word_infos;
 public:
-    CRabinKarpMatcher()
-    {
-        const char *keywords [6] = {
-            "hello", "world", 
-            "HELL", "WORLD",
-            "血界战线", "吹响!上悠风号",
-        };
-        for (int i=0; i!=6; ++i)
-        {
-            CWordInformation info(keywords[i]);
-            m_word_infos.push_back(info);
-        }
-    }
+    CRabinKarpMatcher(const char** keywords, const int keywords_cnt);
+    ~CRabinKarpMatcher(){}
 
-    virtual ~CRabinKarpMatcher(){}
-
-    bool match(const string &str_to_match);
-private:
-    static bool __extract_match(
-        const string &str_to_match, unsigned long index_begin,
-        const string &pattern);
+    virtual bool match(
+        const string &str_to_match,
+        string *string_match,
+        size_t *index_match);
 };
 
 #endif  // end of __RABIN_KARP_MATCHER__

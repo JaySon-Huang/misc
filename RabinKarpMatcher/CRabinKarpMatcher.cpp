@@ -13,8 +13,8 @@ CWordInformation::CWordInformation(
             m_top_muti = (m_top_muti * HASH_D) % HASH_MOD;
         }
     }
-    fprintf(stdout, "%s(%lu), hash[%u], top[%u]\n",
-        word.c_str(), word.size(), m_hash, m_top_muti);
+    // fprintf(stdout, "%s(%lu), hash[%u], top[%u]\n",
+    //     word.c_str(), word.size(), m_hash, m_top_muti);
 }
 
 unsigned int CWordInformation::hash_of(
@@ -31,7 +31,20 @@ unsigned int CWordInformation::hash_of(
     return hash;
 }
 
-bool CRabinKarpMatcher::match(const string &str_to_match)
+CRabinKarpMatcher::CRabinKarpMatcher(
+    const char** keywords, const int keywords_cnt)
+{
+    for (int i=0; i != keywords_cnt; ++i)
+    {
+        CWordInformation info(keywords[i]);
+        m_word_infos.push_back(info);
+    }
+}
+
+bool CRabinKarpMatcher::match(
+    const string &str_to_match,
+    string *string_match,
+    size_t *index_match)
 {
     for (auto iter = m_word_infos.begin();
         iter != m_word_infos.end();
@@ -41,8 +54,8 @@ bool CRabinKarpMatcher::match(const string &str_to_match)
         string &word = info.m_word;
         size_t word_length = word.size();
 
-        fprintf(stdout, "trying to match `%s`[%u] in `%s`\n", 
-            word.c_str(), info.m_hash, str_to_match.c_str());
+        // fprintf(stdout, "trying to match `%s`[%u] in `%s`\n", 
+        //     word.c_str(), info.m_hash, str_to_match.c_str());
         if (str_to_match.size() < word_length)
         {
             continue;  // 待匹配的短句比关键词还短, 肯定不能匹配
@@ -62,11 +75,11 @@ bool CRabinKarpMatcher::match(const string &str_to_match)
         {
             if (hash_val == info.m_hash)
             {
+                // 确认是否完全匹配, 防止哈希碰撞
                 if (this->__extract_match(str_to_match, index_begin, word))
                 {
-                    // 确认是否完全匹配, 防止哈希碰撞
-                    fprintf(stdout, "Pattern [%s] occurs in offset [%lu]\n\n",
-                        info.m_word.c_str(), index_begin);
+                    *string_match = word;
+                    *index_match = index_begin;
                     return true;
                 }
             }else if (index_begin < str_to_match.size() - word_length)
@@ -89,16 +102,3 @@ bool CRabinKarpMatcher::match(const string &str_to_match)
     return false;
 }
 
-bool CRabinKarpMatcher::__extract_match(
-    const string &str_to_match, unsigned long index_begin,
-    const string &pattern)
-{
-    for (unsigned int offset = 0; offset != pattern.size(); ++offset)
-    {
-        if (str_to_match[index_begin + offset] != pattern[offset])
-        {
-            return false;
-        }
-    }
-    return true;
-}
