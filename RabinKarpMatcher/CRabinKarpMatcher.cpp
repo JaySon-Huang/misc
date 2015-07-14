@@ -1,6 +1,7 @@
 #include "CRabinKarpMatcher.h"
 
-CWordInformation::CWordInformation(const string &word): m_hash(0), m_top_muti(1)
+CWordInformation::CWordInformation(
+    const string &word): m_word(word), m_hash(0), m_top_muti(1)
 {
     unsigned char next_char = '\0';
     for (int i=0; i!=word.size(); ++i)
@@ -12,7 +13,7 @@ CWordInformation::CWordInformation(const string &word): m_hash(0), m_top_muti(1)
             m_top_muti = (m_top_muti * HASH_D) % HASH_MOD;
         }
     }
-    fprintf(stdout, "%s(%u), hash[%u], top[%u]\n",
+    fprintf(stdout, "%s(%lu), hash[%u], top[%u]\n",
         word.c_str(), word.size(), m_hash, m_top_muti);
 }
 
@@ -32,50 +33,47 @@ unsigned int CWordInformation::hash_of(
 
 bool CRabinKarpMatcher::match(const string &str_to_match)
 {
-    for(auto iter = m_keys_infos.begin();
-        iter != m_keys_infos.end();
+    for (auto iter = m_word_infos.begin();
+        iter != m_word_infos.end();
         ++iter)
     {
-        string key = iter->first;
-        unsigned long key_length = key.size();
-        CWordInformation &info = iter->second;
+        CWordInformation &info = *iter;
+        string &word = info.m_word;
+        size_t word_length = word.size();
 
         fprintf(stdout, "trying to match `%s`[%u] in `%s`\n", 
-            key.c_str(), info.m_hash, str_to_match.c_str());
-
-        if (str_to_match.size() < key_length)
+            word.c_str(), info.m_hash, str_to_match.c_str());
+        if (str_to_match.size() < word_length)
         {
             continue;  // 待匹配的短句比关键词还短, 肯定不能匹配
         }
 
         unsigned char head_char = '\0';
         unsigned char next_char = '\0';
-        // 计算初始部分的hash值
         unsigned int hash_val = CWordInformation::hash_of(
             str_to_match,
-            0, key_length
+            0, word_length
         );
 
         // Rolling hash 进行匹配
-        for (unsigned long index_begin = 0;
-            index_begin != str_to_match.size() - key_length+1;
+        for (size_t index_begin = 0;
+            index_begin != str_to_match.size() - word_length+1;
             ++index_begin)
         {
-
             if (hash_val == info.m_hash)
             {
-                // 确认是否完全匹配, 防止哈希碰撞
-                if (this->__extract_match(str_to_match, index_begin, key))
+                if (this->__extract_match(str_to_match, index_begin, word))
                 {
-                    fprintf(stdout, "Pattern [%s] occurs in offset [%u]\n\n",
-                        key.c_str(), index_begin);
+                    // 确认是否完全匹配, 防止哈希碰撞
+                    fprintf(stdout, "Pattern [%s] occurs in offset [%lu]\n\n",
+                        info.m_word.c_str(), index_begin);
                     return true;
                 }
-            }else if (index_begin < str_to_match.size() - key_length)
+            }else if (index_begin < str_to_match.size() - word_length)
             {
                 // 注意取unsigned char才能匹配utf-8的中文
                 head_char = str_to_match[index_begin];
-                next_char = str_to_match[index_begin + key_length];
+                next_char = str_to_match[index_begin + word_length];
 
                 // 使用Rolling Hash更新hash值
                 hash_val = (

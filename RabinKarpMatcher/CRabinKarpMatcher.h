@@ -5,10 +5,11 @@
 #include <cstdio>
 #include <iostream>
 #include <string>
+#include <vector>
 #include <map>
+using std::vector;
 using std::map;
 using std::string;
-// using namespace std;
 
 class CWordInformation
 {
@@ -16,6 +17,7 @@ public:
     const static unsigned int HASH_D = 255;
     const static unsigned int HASH_MOD = 6999997;
 public:
+    string m_word;
     unsigned int m_hash;
     unsigned int m_top_muti;
 public:
@@ -29,7 +31,7 @@ public:
 class CRabinKarpMatcher
 {
 private:
-    map<string, CWordInformation> m_keys_infos;
+    vector<CWordInformation> m_word_infos;
 public:
     CRabinKarpMatcher()
     {
@@ -41,9 +43,7 @@ public:
         for (int i=0; i!=6; ++i)
         {
             CWordInformation info(keywords[i]);
-            m_keys_infos.insert(
-                map<string, CWordInformation>::value_type(keywords[i], info)
-            );
+            m_word_infos.push_back(info);
         }
     }
 
