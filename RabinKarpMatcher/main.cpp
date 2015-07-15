@@ -14,8 +14,8 @@ int testMatcher(CBaseMatcher *matcher)
 {
     size_t index_matched = -1;
     string string_matched;
-    const int NUM_SMAPLES = 16;
-    char *samples_to_match [NUM_SMAPLES] = {
+    static const int NUM_SMAPLES = 16;
+    const char *samples_to_match [NUM_SMAPLES] = {
         "HELL", " HELL", " HELL ",
         "What the HELL ", "Hello", "hello", "ello world",
         "血界战线", "=血界战线", "看血界战线!", "强烈推荐血界战线!!",
@@ -49,17 +49,20 @@ int main(int argc, char const *argv[])
     };
 
     clock_t start, end;
-    const int TEST_ROUND = 100000;
+    static const unsigned int TEST_ROUND = 100;
     CBaseMatcher *matcher = NULL;
 
     cout << "testing CRabinKarpMatcher..." << endl;
     start = clock();
     matcher = new CRabinKarpMatcher(keywords, 6);
     for (int i=0; i!=TEST_ROUND; ++i)
+    {
         testMatcher(matcher);
+    }
     delete matcher;
     end = clock();
-    cout << end-start << endl;
+    fprintf(stdout, "Cost %.4f secs for %d loops\n",
+        ((double)(end-start)/CLOCKS_PER_SEC), TEST_ROUND);
 
     cout << endl;
 
@@ -67,10 +70,13 @@ int main(int argc, char const *argv[])
     start = clock();
     matcher = new CSimpleMatcher(keywords, 6);
     for (int i=0; i!=TEST_ROUND; ++i)
+    {
         testMatcher(matcher);
+    }
     delete matcher;
     end = clock();
-    cout << end-start << endl;
+    fprintf(stdout, "Cost %.4f secs for %d loops\n",
+        ((double)(end-start)/CLOCKS_PER_SEC), TEST_ROUND);
 
     return 0;
 }
