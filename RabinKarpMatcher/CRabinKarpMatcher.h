@@ -3,12 +3,11 @@
 
 #include <cstdlib>
 #include <cstdio>
-#include <iostream>
+#include <cstring>
+
 #include <string>
 #include <vector>
-#include <map>
 using std::vector;
-using std::map;
 using std::string;
 
 #include "CBaseMatcher.h"

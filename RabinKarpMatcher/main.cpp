@@ -2,7 +2,6 @@
 #include <cstdio>
 #include <ctime>
 
-#include <iostream>
 #include <string>
 using namespace std;
 
@@ -11,6 +10,8 @@ using namespace std;
 #include "CSimpleMatcher.h"
 
 #include "gtest/gtest.h"
+
+const int TEST_ROUND = 10000;
 
 struct STTestSentence
 {
@@ -58,6 +59,10 @@ public:
             "文本文档是以TXT后缀名的文件，在windows页面重点及鼠标右键-〉新建-〉在下拉子菜单中有文本文档一项。 详细：txt文件是微软在操作系统上附带的一种文本格式，是最常见的一种文件格式，早在DOS时代应用就很多，主要存文本信息，即为文字信.",
             false, 0)
         );
+        sentences.push_back(STTestSentence(
+            "电视动画《幻界战线》改编自由日本漫画家内藤泰弘原作的同名漫画。作品动画化决定的消息在2014年6月4日发售的漫画杂志《Jump SQ》2014年7月号以及漫画单行本第9集上正式宣布[1] 。电视动画于2015年4月4日开始播出，在中国大陆地区的译名为《幻界战线》（血界战线）。",
+            true, 338)
+        );
         return sentences;
     }
 protected:
@@ -73,14 +78,17 @@ public:
         };
 
         rk_matcher = new CRabinKarpMatcher(KEYWORDS, NUM_KEYWORD);
-        s_matcher = new CSimpleMatcher(KEYWORDS, NUM_KEYWORD);
+        s_matcher  = new CSimpleMatcher(KEYWORDS, NUM_KEYWORD);
     }
 
     static void TearDownTestCase() {
         delete rk_matcher;
+        rk_matcher = NULL;
         delete s_matcher;
+        s_matcher = NULL;
     }
 };
+// 静态成员声明
 CBaseMatcher *MatcherTest::rk_matcher = NULL;
 CBaseMatcher *MatcherTest::s_matcher = NULL;
 vector<STTestSentence> MatcherTest::sentences;
@@ -117,6 +125,30 @@ TEST_P(MatcherTest, RabinKarp)
     }
 }
 
+TEST_P(MatcherTest, Simple_Repeat)
+{
+    size_t index_matched = -1;
+    string string_matched;
+    STTestSentence sentence = GetParam();
+
+    for (int i=0; i!=TEST_ROUND; ++i){
+        EXPECT_EQ(sentence.m_isMatched,
+            s_matcher->match(sentence.m_sentence, &string_matched, &index_matched));
+    }
+}
+
+TEST_P(MatcherTest, RabinKarp_Repeat)
+{
+    size_t index_matched = -1;
+    string string_matched;
+    STTestSentence sentence = GetParam();
+
+    for (int i=0; i!=TEST_ROUND; ++i)
+    {
+        EXPECT_EQ(sentence.m_isMatched,
+            rk_matcher->match(sentence.m_sentence, &string_matched, &index_matched));
+    }
+}
 
 INSTANTIATE_TEST_CASE_P(
     No, MatcherTest,

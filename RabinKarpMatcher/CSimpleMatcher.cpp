@@ -1,5 +1,7 @@
 #include "CSimpleMatcher.h"
 
+
+
 CSimpleMatcher::CSimpleMatcher(
     const char** keywords, const int keywords_cnt)
 {
