@@ -74,14 +74,22 @@ bool CRabinKarpMatcher::match(
             ++index_begin)
         {
             if (hash_val == info.m_hash)
-            {
+            {/*
                 // 确认是否完全匹配, 防止哈希碰撞
                 if (this->__extract_match(str_to_match, index_begin, word))
                 {
-                    *string_match = word;
-                    *index_match = index_begin;
+                    if (string_match != NULL )
+                    {
+                        string_match->assign(word);
+                    }
+                    if (index_match != NULL)
+                    {
+                        *index_match = index_begin;
+                    }
                     return true;
                 }
+            */
+                return true;
             }else if (index_begin < str_to_match.size() - word_length)
             {
                 // 注意取unsigned char才能匹配utf-8的中文

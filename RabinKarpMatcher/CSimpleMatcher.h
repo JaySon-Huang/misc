@@ -22,8 +22,8 @@ public:
 
     virtual bool match(
         const string &str_to_match,
-        string *string_match,
-        size_t *index_match);
+        string *string_match=NULL,
+        size_t *index_match=NULL);
 };
 
 #endif

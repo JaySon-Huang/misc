@@ -30,11 +30,15 @@ bool CSimpleMatcher::match(
         {
             if (this->__extract_match(str_to_match, index_begin, *pWord))
             {
-                *string_match = *pWord;
-                *index_match = index_begin;
+                if (string_match != NULL )
+                {
+                    string_match->assign(*pWord);
+                }
+                if (index_match != NULL)
+                {
+                    *index_match = index_begin;
+                }
                 return true;
-            }else{
-                continue;
             }
         }
     }
