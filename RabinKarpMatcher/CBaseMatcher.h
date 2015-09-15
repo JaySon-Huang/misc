@@ -21,10 +21,21 @@ public:
 
 protected:
     static bool __extract_match(
-        const string &str_to_match, unsigned long index_begin,
+        const string &str_to_match, size_t index_begin,
         const string &pattern)
     {
-        for (unsigned int offset = 0; offset != pattern.size(); ++offset)
+/*
+        // memcmp 替代逐个字节的比较
+        return (
+            0 == memcmp(
+                str_to_match.data()+index_begin,
+                pattern.data(), pattern.size()
+            )
+        );
+*/
+
+        // 逐个字节比较
+        for (size_t offset = 0; offset != pattern.size(); ++offset)
         {
             if (str_to_match[index_begin + offset] != pattern[offset])
             {
@@ -32,6 +43,7 @@ protected:
             }
         }
         return true;
+
     }
 };
 

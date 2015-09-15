@@ -17,11 +17,11 @@ CWordInformation::CWordInformation(
     //     word.c_str(), word.size(), m_hash, m_top_muti);
 }
 
-unsigned int CWordInformation::hash_of(
+uint32_t CWordInformation::hash_of(
     const string &word,
     size_t index_begin, size_t length)
 {
-    unsigned int hash = 0;
+    uint32_t hash = 0;
     unsigned char next_char = '\0';
     for (size_t i = 0; i != length; ++i)
     {
@@ -63,7 +63,7 @@ bool CRabinKarpMatcher::match(
 
         unsigned char head_char = '\0';
         unsigned char next_char = '\0';
-        unsigned int hash_val = CWordInformation::hash_of(
+        uint32_t hash_val = CWordInformation::hash_of(
             str_to_match,
             0, word_length
         );

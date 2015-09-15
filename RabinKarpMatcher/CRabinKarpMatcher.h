@@ -15,16 +15,16 @@ using std::string;
 class CWordInformation
 {
 public:
-    const static unsigned int HASH_D = 255;
-    const static unsigned int HASH_MOD = 6999997;
+    const static uint32_t HASH_D = 255;
+    const static uint32_t HASH_MOD = 6999997;
 public:
     string m_word;
-    unsigned int m_hash;
-    unsigned int m_top_muti;
+    uint32_t m_hash;
+    uint32_t m_top_muti;
 public:
     CWordInformation(const string &word);
 
-    static unsigned int hash_of(
+    static uint32_t hash_of(
         const string &word,
         size_t index_begin, size_t length);
 };
