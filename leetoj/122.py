@@ -9,12 +9,21 @@ class Solution:
         if len(prices) == 0:
             return 0
         cur_min = prices[0]
-        max_profit = 0
-        for i in xrange(1, len(prices)):
-            cur_min = min(cur_min, prices[i])
-            max_profit = max(max_profit, prices[i] - cur_min)
-        return max_profit
+        total_profit = 0
+        isAscending = True
+        for index in range(1, len(prices)):
+            if prices[index] < prices[index-1]:
+                isAscending = False
+                total_profit += prices[index-1] - cur_min
 
-print Solution().maxProfit([1,2,3,4,5,6,])
-print Solution().maxProfit([2,3,4,5,6,1])
-print Solution().maxProfit([2,3,4,5,6,1,9])
+                cur_min = prices[index]
+        if cur_min != prices[-1]:
+            total_profit += prices[-1] - cur_min
+        return total_profit
+
+print(Solution().maxProfit([1,2,3,4,5,6]))
+print(Solution().maxProfit([2,3,4,5,6,1]))
+print(Solution().maxProfit([2,3,4,5,6,1,2]))
+
+# FIXME: Shoule return 12 but not 8
+print(Solution().maxProfit([2,3,4,5,6,1,9]))
