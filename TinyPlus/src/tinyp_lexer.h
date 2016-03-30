@@ -1,9 +1,8 @@
 ﻿#ifndef __TINYP_LEXER_H__
-#define __TINYP_LEXER_H__ 
+#define __TINYP_LEXER_H__
 
-
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "tinyp_structs.h"
@@ -18,15 +17,12 @@ using std::vector;
   *    记录词法分析状态的struct的指针
   * @ptoken_pairs
   *    解析结果vector容器
-  * @return 
+  * @return
   *    0 :正常
   *    -1:出错,通过查看plex_state中的状态查看出错原因
   */
-int 
-init_lexer(
-    const char* filename,
-    struct lex_state_t* plex_state,
-    vector<token_pair_t> * ptoken_pairs);
+int init_lexer(const char* filename, struct lex_state_t* plex_state,
+               vector<token_pair_t>* ptoken_pairs);
 
 /**
   * 解析结束后释放资源
@@ -35,10 +31,8 @@ init_lexer(
   * @ptoken_pairs
   *    解析结果vector容器
   */
-int 
-destroy_lexer(
-    struct lex_state_t* plex_state,
-    vector<token_pair_t> * ptoken_pairs);
+int destroy_lexer(struct lex_state_t* plex_state,
+                  vector<token_pair_t>* ptoken_pairs);
 
 /**
   * 开始解析
@@ -47,9 +41,7 @@ destroy_lexer(
   * @ptoken_pairs
   *    解析结果vector容器
   */
-int lexical(
-    struct lex_state_t* plex_state,
-    vector<token_pair_t> * ptoken_pairs);
+int lexical(struct lex_state_t* plex_state, vector<token_pair_t>* ptoken_pairs);
 
 /**
   * 从文件中读取下一个有效的char
@@ -60,11 +52,8 @@ int lexical(
   *    正常返回0~255的char
   *    EOF代表遇到文件尾
   */
-int get_next_char(
-    struct lex_state_t* plex_state);
+int get_next_char(struct lex_state_t* plex_state);
 
-void unget_one_char(
-    int ch,
-    struct lex_state_t* plex_state);
+void unget_one_char(int ch, struct lex_state_t* plex_state);
 
 #endif
